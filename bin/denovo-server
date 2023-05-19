@@ -1,0 +1,5 @@
+#!/usr/bin/env zsh
+
+exec deno run --unstable --no-check \
+  --allow-env --allow-read --allow-run --allow-write \
+  -- "${DENOVO_ROOT:-${0:a:h:h}}/denovo/@denovo-private/main.ts" "$@"

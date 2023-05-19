@@ -1,0 +1,6 @@
+{
+  "tasks": {
+    "zsh": "zsh test.zsh",
+    "dev": "deno run --unstable --allow-env --allow-read --allow-write --watch denovo/@denovo-private/main.ts"
+  }
+}
