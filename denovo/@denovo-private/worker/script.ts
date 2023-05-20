@@ -99,10 +99,13 @@ patchConsole(`(${worker.name})`);
 worker.addEventListener("message", (event: MessageEvent<unknown>) => {
   assertObject(event.data);
   assertString(event.data.scriptUrl);
-  if (!isMeta(event.data.meta)) {
-    throw new Error(`Invalid 'meta' is passed: ${event.data.meta}`);
+  let meta: Meta;
+  if (isMeta(event.data.meta)) {
+    meta = event.data.meta;
+  } else {
+    meta = { mode: "debug", version: "", platform: "mac" }; // TODO
   }
-  const { scriptUrl, meta } = event.data;
+  const { scriptUrl } = event.data;
   main(scriptUrl, meta).catch((e) => {
     console.error(
       `Unexpected error occurred in '${scriptUrl}': ${e}`,
