@@ -12,6 +12,6 @@ export interface Denovo {
   readonly name: string;
   readonly meta: Meta;
   dispatcher: Dispatcher;
-  eval(script: string): Promise<ReadableStream<Uint8Array>>;
+  eval(script: string): Promise<string>;
   dispatch(name: string, fn: string, ...args: unknown[]): Promise<unknown>;
 }

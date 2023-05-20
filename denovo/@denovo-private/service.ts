@@ -181,10 +181,10 @@ function buildServiceSession(
       return await service.dispatch(name, fn, args);
     },
 
-    eval: async(expr) => {
-      assertString(expr)
-      return await service.host.eval(expr)
-    }
+    eval: async (expr) => {
+      assertString(expr);
+      return await service.host.eval(expr);
+    },
   };
   session.start();
   return session;

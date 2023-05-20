@@ -1,6 +1,7 @@
 import {
   assertObject,
   assertString,
+  ensureString,
   isObject,
   isString,
 } from "https://deno.land/x/unknownutil@v2.1.1/mod.ts#^";
@@ -58,8 +59,8 @@ async function main(
     call(method: string, ...params: unknown[]): Promise<unknown> {
       return client.call(method, ...params);
     },
-    async eval(expr: string): Promise<ReadableStream<Uint8Array>> {
-      return await client.call("eval", expr) as ReadableStream<Uint8Array>;
+    async eval(expr: string): Promise<string> {
+      return ensureString(await client.call("eval", expr));
     },
   });
   try {

@@ -2,12 +2,13 @@ import type { Disposable } from "https://deno.land/x/disposable@v1.1.1/mod.ts#^"
 import { Invoker, isInvokerMethod } from "./invoker.ts";
 import { Session } from "./session.ts";
 import { NewError, NewSuccess, Response } from "./jsonrpc/types.ts";
+import { readAll } from "https://deno.land/std@0.188.0/streams/read_all.ts";
 
 export interface Host extends Disposable {
   /**
    * evaluate shell expr and return stdout
    */
-  eval(expr: string): Promise<ReadableStream<Uint8Array>>;
+  eval(expr: string): Promise<string>;
 
   /**
    * Register invoker
@@ -35,11 +36,11 @@ export class HostImpl implements Host {
     this.#connectOptions = opts;
   }
 
-  async eval(expr: string): Promise<ReadableStream<Uint8Array>> {
+  async eval(expr: string): Promise<string> {
     const conn = await Deno.connect(this.#connectOptions);
     await conn.write(new TextEncoder().encode(expr));
     await conn.closeWrite();
-    return conn.readable;
+    return new TextDecoder().decode(await readAll(conn));
   }
 
   register(invoker: Invoker): Response {
@@ -50,13 +51,13 @@ export class HostImpl implements Host {
           error: {
             code: 404,
             message: `Method '${method}' is not defined in the invoker`,
-          }
-        })
+          },
+        });
       }
       // deno-lint-ignore no-explicit-any
       return await (invoker[method] as any)(...params);
     };
-    return NewSuccess({})
+    return NewSuccess({});
   }
 
   async waitClosed(): Promise<void> {

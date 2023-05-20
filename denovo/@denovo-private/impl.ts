@@ -2,7 +2,7 @@ import { Denovo, Dispatcher, Meta } from "../@denovo/mod.ts";
 
 export interface Session {
   dispatcher: Dispatcher;
-  eval(expr: string): Promise<ReadableStream<Uint8Array>>;
+  eval(expr: string): Promise<string>;
   call(method: string, ...params: unknown[]): Promise<unknown>;
 }
 
@@ -29,7 +29,7 @@ export class DenovoImpl implements Denovo {
     this.#sesssion.dispatcher = dispatcher;
   }
 
-  async eval(expr: string): Promise<ReadableStream<Uint8Array>> {
+  async eval(expr: string): Promise<string> {
     return await this.#sesssion.eval(expr);
   }
 

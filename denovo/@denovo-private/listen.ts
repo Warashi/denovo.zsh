@@ -25,8 +25,8 @@ async function handle(conn: Deno.Conn): Promise<void> {
   await using(
     new HostImpl(reader, writer, { transport: "unix", path: socketPath }),
     async (host) => {
-      await using(new Service(host), async (service) => {
-        await service.host.waitClosed();
+      await using(new Service(host), async () => {
+        await new Promise(() => {});
       });
     },
   );
