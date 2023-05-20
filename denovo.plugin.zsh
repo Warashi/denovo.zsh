@@ -15,7 +15,10 @@ if [[ ! -d ${DENOVO_SOCK_DIR} ]]; then
 fi
 "${DENOVO_SERVER_BIN:-${DENOVO_ROOT}/bin/denovo-server}" >>"${DENOVO_ROOT}/denovo.log" 2>&1 &!
 
+export DENOVO_PATH=${DENOVO_ROOT}
+
 source "${DENOVO_ROOT}/shell/dispatch.zsh"
+source "${DENOVO_ROOT}/shell/register.zsh"
 source "${DENOVO_ROOT}/shell/listen.zsh"
 
 function denovo-stop-server() {
