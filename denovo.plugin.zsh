@@ -4,7 +4,7 @@ if [[ -n "$DENOVO_LOADED" ]]; then
 fi
 export DENOVO_LOADED=1
 
-: ${DENOVO_ROOT=${DENOVO_ROOT:-${0:a:h}}}
+: ${DENOVO_ROOT:=${0:a:h}}
 : ${DENOVO_SOCK_DIR:="${XDG_RUNTIME_DIR:-${TMPDIR:-/tmp}}/denovo-${UID}"}
 : ${DENOVO_DENO_SOCK::="${DENOVO_SOCK_DIR}/denovo-${$}.deno.sock"}
 : ${DENOVO_ZSH_SOCK::="${DENOVO_SOCK_DIR}/denovo-${$}.zsh.sock"}
