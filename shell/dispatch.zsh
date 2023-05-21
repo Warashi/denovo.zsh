@@ -1,13 +1,3 @@
-function _denovo_request() {
-  local method=$1
-  local params=$2
-  local jsonrpc_kv="$(_denovo_json_kv "jsonrpc" $(_denovo_json_string "2.0"))"
-  local method_kv="$(_denovo_json_kv "method" $(_denovo_json_string "$method"))"
-  local params_kv="$(_denovo_json_kv "params" $params)"
-  local request=$(_denovo_json_object "$jsonrpc_kv" "$method_kv" "$params_kv")
-  echo "$request"
-}
-
 function denovo_notify() {
 	local method=$1
 	local params=$2
