@@ -51,7 +51,7 @@ export class Invoker {
     return this.#service.reload(name, meta, options);
   }
 
-  dispatch(name: string, fn: string, args: unknown[]): Promise<Response> {
+  dispatch(name: string, fn: string, ...args: unknown[]): Promise<Response> {
     return this.#service.dispatch(name, fn, args);
   }
 }
