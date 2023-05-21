@@ -43,6 +43,6 @@ if (existsSync(denoSocketPath)) {
 }
 
 start(zshSocketPath, denoSocketPath);
-(await evalZsh("_denovo_discover")).pipeTo(Deno.stderr.writable);
+(await evalZsh(`typeset -g _DENOVO_DENO_PID="${Deno.pid}"; _denovo_discover`)).pipeTo(Deno.stderr.writable);
 await p;
 
