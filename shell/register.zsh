@@ -1,7 +1,7 @@
 function denovo_register() {
   local plugin=$1
   local script=$2
-  denovo_dispatch "register" "$(jq -n --arg plugin "$plugin" --arg script "$script" '[$plugin, $script]')" >& /dev/null
+  denovo_notify "register" "$(jq -n --arg plugin "$plugin" --arg script "$script" '[$plugin, $script]')" >& /dev/null
 }
 
 function _denovo_discover() {
