@@ -2,7 +2,7 @@ function denovo_register() {
   local plugin=$1
   local script=$2
   local request="$(_denovo_json_array $(_denovo_json_string $plugin) $(_denovo_json_string $script))"
-  denovo_notify "register" "$request"
+  _denovo_notify "register" "$request"
 }
 
 function _denovo_discover() {
