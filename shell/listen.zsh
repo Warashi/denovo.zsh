@@ -7,7 +7,7 @@ function _denovo_listen() {
 	isok=$?
 	((isok == 0)) || return 1
 	fd=$REPLY
-	zle -F $fd _denovo_accept
+	zle -F -w $fd _denovo_accept
 }
 
 function _denovo_accept() {
@@ -19,6 +19,8 @@ function _denovo_accept() {
 	fd=$REPLY
 	eval "$(<&$fd)" >&$fd
 	exec {fd}>&-
+	zle -R
 }
+zle -N _denovo_accept
 
 _denovo_listen
