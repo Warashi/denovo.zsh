@@ -17,6 +17,7 @@ fi
 
 export DENOVO_PATH=${DENOVO_ROOT}
 
+source "${DENOVO_ROOT}/shell/json.zsh"
 source "${DENOVO_ROOT}/shell/listen.zsh"
 source "${DENOVO_ROOT}/shell/dispatch.zsh"
 source "${DENOVO_ROOT}/shell/register.zsh"

@@ -1,10 +1,20 @@
+function _denovo_request() {
+  local method=$1
+  local params=$2
+  local jsonrpc_kv="$(_denovo_json_kv "jsonrpc" $(_denovo_json_string "2.0"))"
+  local method_kv="$(_denovo_json_kv "method" $(_denovo_json_string "$method"))"
+  local params_kv="$(_denovo_json_kv "params" $params)"
+  local request=$(_denovo_json_object "$jsonrpc_kv" "$method_kv" "$params_kv")
+  echo "$request"
+}
+
 function denovo_notify() {
 	local method=$1
 	local params=$2
 	if [[ -z "$params" ]]; then
 		params='[]'
 	fi
-	local request=$(jq -c -n --arg method "${method}" --argjson params "${params}" '{jsonrpc:"2.0",method:$method,params:$params}')
+  local request="$(_denovo_request "$method" "$params")"
 	_denovo_notify "$request" 0
 }
 
@@ -36,7 +46,7 @@ function denovo_dispatch() {
 	if [[ -z "$params" ]]; then
 		params='[]'
 	fi
-	local request=$(jq -c -n --arg method "${method}" --argjson params "${params}" '{jsonrpc:"2.0",id:1,method:$method,params:$params}')
+  local request="$(_denovo_request "$method" "$params")"
 	_denovo_dispatch "$request" 0
 }
 
