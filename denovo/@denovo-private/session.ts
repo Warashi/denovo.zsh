@@ -15,7 +15,12 @@ export class Session {
 
   async start(): Promise<void> {
     for await (const conn of this.#listener) {
-      this.accept(conn).catch((err) => console.error("Unexpected error", err));
+      this.accept(conn).catch((err) => {
+        if (err instanceof Deno.errors.BadResource) {
+          return;
+        }
+        console.log(err);
+      });
     }
   }
 
