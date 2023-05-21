@@ -2,6 +2,7 @@ import { listen } from "./listen.ts";
 import { printf } from "https://deno.land/std@0.176.0/fmt/printf.ts";
 import { existsSync } from "https://deno.land/std@0.187.0/fs/exists.ts";
 import { DENOVO_DENO_SOCK } from "./settings.ts";
+import { evalZsh } from "./eval.ts";
 
 const socketPath = DENOVO_DENO_SOCK;
 
@@ -24,4 +25,6 @@ if (existsSync(socketPath)) {
   Deno.exit();
 }
 
-await listen(socketPath);
+const listener = listen(socketPath);
+(await evalZsh("_denovo_discover")).pipeTo(Deno.stderr.writable);
+await listener;

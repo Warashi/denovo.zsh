@@ -19,5 +19,3 @@ function _denovo_discover() {
     done
   done
 }
-
-_denovo_discover

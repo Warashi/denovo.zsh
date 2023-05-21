@@ -10,21 +10,12 @@ function denovo_notify() {
 
 function _denovo_notify() {
 	local request=$1
-	local retry=$2
 	local REPLY
 	local -i isok fd
 	zmodload zsh/net/socket
 	zsocket "$DENOVO_DENO_SOCK" >&/dev/null
 	isok=$?
-	if ((isok != 0)); then
-		if ((retry > 3)); then
-			return 1
-		fi
-		sleep 0.1
-		((retry++))
-		_denovo_notify "$request" $retry
-		return $?
-	fi
+  (( isok == 0 )) || return 1
 	fd=$REPLY
 	echo "$1" >&$fd
 	exec {fd}>&-
