@@ -1,21 +1,12 @@
-import { toFileUrl } from "https://deno.land/std@0.187.0/path/mod.ts";
-import {
-  assertArray,
-  assertString,
-} from "https://deno.land/x/unknownutil@v2.1.1/mod.ts#^";
-import {
-  Client,
-  Session,
-} from "https://deno.land/x/messagepack_rpc@v1.0.0/mod.ts#^";
-import {
-  readableStreamFromWorker,
-  writableStreamFromWorker,
-} from "https://deno.land/x/workerio@v3.1.0/mod.ts#^";
-import { Disposable } from "https://deno.land/x/disposable@v1.1.1/mod.ts#^";
+import { toFileUrl } from "./deps.ts";
+import { assertArray, assertString } from "./deps.ts";
+import { Client, Session } from "./deps.ts";
+import { readableStreamFromWorker, writableStreamFromWorker } from "./deps.ts";
+import { Disposable } from "./deps.ts";
 import { Host } from "./host.ts";
 import { Invoker, RegisterOptions, ReloadOptions } from "./invoker.ts";
-import type { Meta } from "../@denovo/mod.ts";
-import { NewError, NewSuccess, Response } from "./jsonrpc/types.ts";
+import { Meta } from "../@denovo/mod.ts";
+import { NewError, NewSuccess, Response } from "./jsonrpc/mod.ts";
 
 const workerScript = "./worker/script.ts";
 

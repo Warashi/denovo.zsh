@@ -1,4 +1,4 @@
-import { using } from "https://deno.land/x/disposable@v1.1.1/mod.ts#^";
+import { using } from "./deps.ts";
 import { HostImpl } from "./host.ts";
 import { Service } from "./service.ts";
 import { DENOVO_ZSH_SOCK } from "./settings.ts";

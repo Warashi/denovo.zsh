@@ -1,8 +1,8 @@
-import type { Disposable } from "https://deno.land/x/disposable@v1.1.1/mod.ts#^";
+import { Disposable } from "./deps.ts";
 import { Invoker, isInvokerMethod } from "./invoker.ts";
 import { Session } from "./session.ts";
-import { NewError, NewSuccess, Response } from "./jsonrpc/types.ts";
-import { readAll } from "https://deno.land/std@0.188.0/streams/read_all.ts";
+import { NewError, NewSuccess, Response } from "./jsonrpc/mod.ts";
+import { readAll } from "./deps.ts";
 
 export interface Host extends Disposable {
   /**

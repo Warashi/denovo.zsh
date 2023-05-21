@@ -1,31 +1,13 @@
-import {
-  JsonParseStream,
-  JsonStringifyStream,
-  JsonValue,
-} from "https://deno.land/std@0.188.0/json/mod.ts";
-import {
-  isRequest,
-  isResponse,
-  NewError,
-  Request,
-  Response,
-} from "./jsonrpc/types.ts";
-import {
-  TextLineStream,
-  toTransformStream,
-} from "https://deno.land/std@0.188.0/streams/mod.ts";
-import { ErrorInvalidRequest } from "./jsonrpc/error.ts";
-import {
-  isNumber,
-  isObject,
-} from "https://deno.land/x/unknownutil@v2.1.1/is.ts";
-import { assertLike } from "https://deno.land/x/unknownutil@v2.1.1/assert.ts";
+import { JsonParseStream, JsonStringifyStream, JsonValue } from "./deps.ts";
+import * as jsonrpc from "./jsonrpc/mod.ts";
+import { TextLineStream, toTransformStream } from "./deps.ts";
+import { isNumber, isObject } from "./deps.ts";
 
 export class Session {
   #reader: ReadableStream<Uint8Array>;
   #writer: WritableStream<Uint8Array>;
 
-  onMessage: (message: Request) => Promise<unknown> = async () => {};
+  onMessage: (message: jsonrpc.Request) => Promise<unknown> = async () => {};
 
   constructor(
     reader: ReadableStream<Uint8Array>,
@@ -46,16 +28,16 @@ export class Session {
       .pipeTo(this.#writer);
   }
 
-  async dispatch(request: Request): Promise<Response> {
+  async dispatch(request: jsonrpc.Request): Promise<jsonrpc.Response> {
     try {
       const result = await this.onMessage(request);
-      if (!isResponse(result)) {
+      if (!jsonrpc.isResponse(result)) {
         throw new Error("result is not Response");
       }
       result.id = request.id;
       return result;
     } catch (e) {
-      return NewError({
+      return jsonrpc.NewError({
         error: {
           code: 500,
           message: "internal server error",
@@ -65,7 +47,7 @@ export class Session {
     }
   }
 
-  async notify(request: Request): Promise<void> {
+  async notify(request: jsonrpc.Request): Promise<void> {
     await this.dispatch(request);
   }
 
@@ -74,7 +56,7 @@ export class Session {
     const session = this;
     return async function* (src: ReadableStream<JsonValue>) {
       for await (const chunk of src) {
-        if (isRequest(chunk)) {
+        if (jsonrpc.isRequest(chunk)) {
           if (chunk.id == null) {
             session.notify(chunk);
           } else {
@@ -82,9 +64,9 @@ export class Session {
           }
         } else {
           if (isObject(chunk) && isNumber(chunk.id)) {
-            yield { id: chunk.id, ...ErrorInvalidRequest };
+            yield { id: chunk.id, ...jsonrpc.ErrorInvalidRequest };
           } else {
-            yield ErrorInvalidRequest;
+            yield jsonrpc.ErrorInvalidRequest;
           }
         }
         return;

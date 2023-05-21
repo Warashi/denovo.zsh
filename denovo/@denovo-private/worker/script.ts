@@ -4,16 +4,10 @@ import {
   ensureString,
   isObject,
   isString,
-} from "https://deno.land/x/unknownutil@v2.1.1/mod.ts#^";
-import {
-  Client,
-  Session,
-} from "https://deno.land/x/messagepack_rpc@v1.0.0/mod.ts#^";
-import {
-  readableStreamFromWorker,
-  writableStreamFromWorker,
-} from "https://deno.land/x/workerio@v3.1.0/mod.ts#^";
-import type { Denovo, Meta } from "../../@denovo/mod.ts";
+} from "../deps.ts";
+import { Client, Session } from "../deps.ts";
+import { readableStreamFromWorker, writableStreamFromWorker } from "../deps.ts";
+import { Denovo, Meta } from "../../@denovo/mod.ts";
 import { DenovoImpl } from "../impl.ts";
 import { patchConsole } from "./patch_console.ts";
 

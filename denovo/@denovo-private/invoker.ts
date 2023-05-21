@@ -1,6 +1,6 @@
 import { Service } from "./service.ts";
-import type { Meta } from "../@denovo/mod.ts";
-import { NewSuccess, Response } from "./jsonrpc/types.ts";
+import { Meta } from "../@denovo/mod.ts";
+import { NewSuccess, Response } from "./jsonrpc/mod.ts";
 
 export type RegisterOptions = {
   /**

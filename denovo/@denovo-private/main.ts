@@ -1,6 +1,6 @@
 import { listen } from "./listen.ts";
-import { printf } from "https://deno.land/std@0.176.0/fmt/printf.ts";
-import { existsSync } from "https://deno.land/std@0.187.0/fs/exists.ts";
+import { printf } from "./deps.ts";
+import { existsSync } from "./deps.ts";
 import { DENOVO_DENO_SOCK } from "./settings.ts";
 import { evalZsh } from "./eval.ts";
 
