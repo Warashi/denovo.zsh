@@ -23,6 +23,12 @@ function __denovo_dispatch() {
 	((isok == 0)) || return 1
 	fd=$REPLY
 	echo "$1" >&$fd
+	zle -F $fd __denovo_dispatch_receive
+}
+
+function __denovo_dispatch_receive() {
+	local fd=$1
 	cat <&$fd
+	zle -F $fd
 	exec {fd}>&-
 }
