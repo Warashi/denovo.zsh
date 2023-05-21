@@ -3,7 +3,13 @@ import {
   JsonStringifyStream,
   JsonValue,
 } from "https://deno.land/std@0.188.0/json/mod.ts";
-import { isRequest, isResponse, NewError, Request } from "./jsonrpc/types.ts";
+import {
+  isRequest,
+  isResponse,
+  NewError,
+  Request,
+  Response,
+} from "./jsonrpc/types.ts";
 import {
   TextLineStream,
   toTransformStream,
@@ -40,33 +46,45 @@ export class Session {
       .pipeTo(this.#writer);
   }
 
+  async dispatch(request: Request): Promise<Response> {
+    try {
+      const result = await this.onMessage(request);
+      if (!isResponse(result)) {
+        throw new Error("result is not Response");
+      }
+      result.id = request.id;
+      return result;
+    } catch (e) {
+      return NewError({
+        error: {
+          code: 500,
+          message: "internal server error",
+          data: e,
+        },
+      });
+    }
+  }
+
+  async notify(request: Request): Promise<void> {
+    await this.dispatch(request);
+  }
+
   transform() {
     // deno-lint-ignore no-this-alias
     const session = this;
     return async function* (src: ReadableStream<JsonValue>) {
       for await (const chunk of src) {
-        if (!isRequest(chunk)) {
+        if (isRequest(chunk)) {
+          if (chunk.id == null) {
+            session.notify(chunk);
+          } else {
+            yield await session.dispatch(chunk);
+          }
+        } else {
           if (isObject(chunk) && isNumber(chunk.id)) {
             yield { id: chunk.id, ...ErrorInvalidRequest };
           } else {
             yield ErrorInvalidRequest;
-          }
-        } else {
-          try {
-            const result = await session.onMessage(chunk);
-            if (!isResponse(result)) {
-              throw new Error("result is not Response");
-            }
-            result.id = chunk.id;
-            yield result;
-          } catch (e) {
-            yield NewError({
-              error: {
-                code: 500,
-                message: "internal server error",
-                data: e,
-              },
-            });
           }
         }
         return;
