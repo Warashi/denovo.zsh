@@ -10,7 +10,7 @@ function _denovo_notify() {
 		params='[]'
 	fi
 	local request="$(_denovo_request "$method" "$params")"
-	__denovo_notify "$request" 0
+	__denovo_notify "$request"
 }
 
 function __denovo_notify() {

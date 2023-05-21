@@ -10,7 +10,7 @@ function _denovo_dispatch() {
 		params='[]'
 	fi
 	local request="$(_denovo_request "$method" "$params" 1)"
-	__denovo_dispatch "$request" 0
+	__denovo_dispatch "$request"
 }
 
 function __denovo_dispatch() {
@@ -28,7 +28,7 @@ function __denovo_dispatch() {
 
 function __denovo_dispatch_receive() {
 	local fd=$1
-	cat <&$fd
 	zle -F $fd
+	cat <&$fd
 	exec {fd}>&-
 }
