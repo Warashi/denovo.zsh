@@ -19,6 +19,14 @@ function _denovo_json_array() {
   printf '[%s]' "${(j:,:)@}"
 }
 
+function _denovo_json_string_array() {
+  local -a result=() 
+  for item in $@; do
+    result+=("$(_denovo_json_string "$item")")
+  done
+  echo "$(_denovo_json_array ${(@)result})"
+}
+
 function _denovo_json_object() {
   printf '{%s}' "${(j:,:)@}"
 }

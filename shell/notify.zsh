@@ -1,14 +1,19 @@
+# denovo_notify name method ...params
 function denovo_notify() {
+	_denovo_notify dispatch "$(_denovo_json_string_array $@)"
+}
+
+function _denovo_notify() {
 	local method=$1
 	local params=$2
 	if [[ -z "$params" ]]; then
 		params='[]'
 	fi
 	local request="$(_denovo_request "$method" "$params")"
-	_denovo_notify "$request" 0
+	__denovo_notify "$request" 0
 }
 
-function _denovo_notify() {
+function __denovo_notify() {
 	local request=$1
 	local REPLY
 	local -i isok fd

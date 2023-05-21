@@ -24,7 +24,7 @@ source "${DENOVO_ROOT}/shell/notify.zsh"
 source "${DENOVO_ROOT}/shell/register.zsh"
 
 function denovo-stop-server() {
-  local pid="$(denovo_dispatch pid | jq .result)"
+  local pid="$(_denovo_dispatch pid | jq .result)"
   if [[ -n "$pid" ]]; then
     kill "$pid"
   fi
