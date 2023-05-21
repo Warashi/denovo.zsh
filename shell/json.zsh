@@ -26,9 +26,15 @@ function _denovo_json_object() {
 function _denovo_request() {
   local method=$1
   local params=$2
+  local id=$3
   local jsonrpc_kv="$(_denovo_json_kv "jsonrpc" $(_denovo_json_string "2.0"))"
   local method_kv="$(_denovo_json_kv "method" $(_denovo_json_string "$method"))"
   local params_kv="$(_denovo_json_kv "params" $params)"
-  local request=$(_denovo_json_object "$jsonrpc_kv" "$method_kv" "$params_kv")
+  if [[ -n "$id" ]]; then
+    local id_kv="$(_denovo_json_kv "id" "$id")"
+    local request=$(_denovo_json_object "$jsonrpc_kv" "$id_kv" "$method_kv" "$params_kv")
+  else
+    local request=$(_denovo_json_object "$jsonrpc_kv" "$method_kv" "$params_kv")
+  fi
   echo "$request"
 }
