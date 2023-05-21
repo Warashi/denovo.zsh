@@ -14,13 +14,13 @@ function _denovo_dispatch() {
 	local REPLY
 	local -i isok fd
 	zmodload zsh/net/socket
-	zsocket "$DENOVO_DENO_SOCK"
+	zsocket "$DENOVO_DENO_SOCK" >& /dev/null
 	isok=$?
 	if ((isok != 0)); then
 		if ((retry > 3)); then
 			return 1
 		fi
-		sleep 0.1
+		sleep 0.01
 		((retry++))
 		_denovo_dispatch "$request" $retry
 	fi
