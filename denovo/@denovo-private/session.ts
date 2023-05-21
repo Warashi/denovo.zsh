@@ -4,28 +4,30 @@ import { TextLineStream, toTransformStream } from "./deps.ts";
 import { isNumber, isObject } from "./deps.ts";
 
 export class Session {
-  #reader: ReadableStream<Uint8Array>;
-  #writer: WritableStream<Uint8Array>;
-
+  #listener: Deno.Listener;
   onMessage: (message: jsonrpc.Request) => Promise<unknown> = async () => {};
 
   constructor(
-    reader: ReadableStream<Uint8Array>,
-    writer: WritableStream<Uint8Array>,
+    listener: Deno.Listener,
   ) {
-    this.#reader = reader;
-    this.#writer = writer;
+    this.#listener = listener;
   }
 
   async start(): Promise<void> {
-    await this.#reader
+    for await (const conn of this.#listener) {
+      this.accept(conn).catch((err) => console.error("Unexpected error", err));
+    }
+  }
+
+  async accept(conn: Deno.Conn): Promise<void> {
+    await conn.readable
       .pipeThrough(new TextDecoderStream())
       .pipeThrough(new TextLineStream())
       .pipeThrough(new JsonParseStream())
       .pipeThrough(toTransformStream(this.transform()))
       .pipeThrough(new JsonStringifyStream())
       .pipeThrough(new TextEncoderStream())
-      .pipeTo(this.#writer);
+      .pipeTo(conn.writable);
   }
 
   async dispatch(request: jsonrpc.Request): Promise<jsonrpc.Response> {
@@ -72,9 +74,5 @@ export class Session {
         return;
       }
     };
-  }
-
-  async shutdown() {
-    await this.#reader.cancel();
   }
 }

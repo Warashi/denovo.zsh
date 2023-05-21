@@ -1,8 +1,7 @@
-import { Disposable } from "./deps.ts";
 import { Invoker, isInvokerMethod } from "./invoker.ts";
 import { Session } from "./session.ts";
 import { NewError, NewSuccess, Response } from "./jsonrpc/mod.ts";
-import { readAll } from "./deps.ts";
+import { Disposable, readAll } from "./deps.ts";
 
 export interface Host extends Disposable {
   /**
@@ -16,23 +15,20 @@ export interface Host extends Disposable {
   register(invoker: Invoker): void;
 
   /**
-   * Wait host close
+   * Wait host closed
    */
   waitClosed(): Promise<void>;
 }
 
 export class HostImpl implements Host {
-  #waiter: Promise<void>;
   #session: Session;
   #connectOptions: Deno.UnixConnectOptions;
 
   constructor(
-    reader: ReadableStream<Uint8Array>,
-    writer: WritableStream<Uint8Array>,
+    listener: Deno.Listener,
     opts: Deno.UnixConnectOptions,
   ) {
-    this.#session = new Session(reader, writer);
-    this.#waiter = this.#session.start();
+    this.#session = new Session(listener);
     this.#connectOptions = opts;
   }
 
@@ -60,12 +56,11 @@ export class HostImpl implements Host {
     return NewSuccess({});
   }
 
-  async waitClosed(): Promise<void> {
-    await this.#waiter;
+  dispose(): void {
+    // noop
   }
 
-  async dispose(): Promise<void> {
-    await this.#session.shutdown();
-    await this.waitClosed();
+  async waitClosed(): Promise<void> {
+    await this.#session.start()
   }
 }
