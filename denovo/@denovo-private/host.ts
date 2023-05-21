@@ -61,6 +61,6 @@ export class HostImpl implements Host {
   }
 
   async waitClosed(): Promise<void> {
-    await this.#session.start()
+    await this.#session.start();
   }
 }
