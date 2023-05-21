@@ -32,6 +32,10 @@ export function isRequest(x: unknown): x is Request {
   return Request.safeParse(x).success;
 }
 
+export function isResponse(x: unknown): x is Response {
+  return isSuccess(x) || isError(x);
+}
+
 export function isSuccess(x: unknown): x is Success {
   return Success.safeParse(x).success;
 }

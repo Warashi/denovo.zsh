@@ -3,12 +3,17 @@ import {
   JsonStringifyStream,
   JsonValue,
 } from "https://deno.land/std@0.188.0/json/mod.ts";
-import { isRequest, NewError, Request } from "./jsonrpc/types.ts";
+import { isRequest, isResponse, NewError, Request } from "./jsonrpc/types.ts";
 import {
   TextLineStream,
   toTransformStream,
 } from "https://deno.land/std@0.188.0/streams/mod.ts";
 import { ErrorInvalidRequest } from "./jsonrpc/error.ts";
+import {
+  isNumber,
+  isObject,
+} from "https://deno.land/x/unknownutil@v2.1.1/is.ts";
+import { assertLike } from "https://deno.land/x/unknownutil@v2.1.1/assert.ts";
 
 export class Session {
   #reader: ReadableStream<Uint8Array>;
@@ -41,10 +46,19 @@ export class Session {
     return async function* (src: ReadableStream<JsonValue>) {
       for await (const chunk of src) {
         if (!isRequest(chunk)) {
-          yield ErrorInvalidRequest;
+          if (isObject(chunk) && isNumber(chunk.id)) {
+            yield { id: chunk.id, ...ErrorInvalidRequest };
+          } else {
+            yield ErrorInvalidRequest;
+          }
         } else {
           try {
-            yield session.onMessage(chunk);
+            const result = await session.onMessage(chunk);
+            if (!isResponse(result)) {
+              throw new Error("result is not Response");
+            }
+            result.id = chunk.id;
+            yield result;
           } catch (e) {
             yield NewError({
               error: {
