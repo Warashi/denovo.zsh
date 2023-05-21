@@ -5,9 +5,8 @@ export async function main(denovo: Denovo): Promise<void> {
   const result = await denovo.eval("echo hello world");
   console.log(result.trim());
   denovo.dispatcher = {
-    async example(arg: unknown): Promise<string> {
-      assertString(arg);
-      return arg
+    async echo(...args: unknown[]): Promise<unknown[]> {
+      return args;
     },
   };
 }
