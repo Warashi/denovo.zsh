@@ -20,7 +20,7 @@ function _denovo_notify() {
 		if ((retry > 3)); then
 			return 1
 		fi
-		sleep 0.01
+		sleep 0.1
 		((retry++))
 		_denovo_notify "$request" $retry
 		return $?
