@@ -40,5 +40,4 @@ function __denovo_dispatch_receive() {
 	local fd=$1
 	cat <&$fd
 	exec {fd}>&-
-	zle -R
 }
