@@ -15,7 +15,8 @@ if [[ ! -d ${DENOVO_SOCK_DIR} ]]; then
 fi
 "${DENOVO_SERVER_BIN:-${DENOVO_ROOT}/bin/denovo-server}" >>"${DENOVO_ROOT}/denovo.log" 2>&1 &!
 
-export DENOVO_PATH=${DENOVO_ROOT}
+typeset -gaU DENOVO_PATH
+DENOVO_PATH+=("${DENOVO_ROOT}")
 
 source "${DENOVO_ROOT}/shell/json.zsh"
 source "${DENOVO_ROOT}/shell/listen.zsh"

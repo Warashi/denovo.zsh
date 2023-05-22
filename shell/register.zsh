@@ -6,8 +6,7 @@ function denovo_register() {
 }
 
 function _denovo_discover() {
-  local -a denovo_path=(${(s/:/)DENOVO_PATH})
-  for p in $denovo_path; do
+  for p in $DENOVO_PATH; do
     for s in $p/denovo/*/main.ts; do
       local script=$s
       local plugin=$(basename $(dirname $script))
