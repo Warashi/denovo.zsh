@@ -27,6 +27,7 @@ function denovo-stop-server() {
   if [[ -n "$_DENOVO_DENO_PID" ]]; then
     kill "$_DENOVO_DENO_PID"
   fi
+  rm -f "$DENOVO_ZSH_SOCK"
 }
 
 autoload -Uz add-zsh-hook
