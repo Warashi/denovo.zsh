@@ -1,14 +1,10 @@
 # denovo_dispatch callback name method ...params
 _denovo_dispatch_callback=""
 function denovo_dispatch() {
-	local callback="$1"
-	shift
 	_denovo_dispatch $callback dispatch "$(_denovo_json_string_array $@)"
 }
 
 function _denovo_dispatch() {
-	local callback="$1"
-	shift
 	local method="$1"
 	local params="$2"
 	if [[ -z "$params" ]]; then
@@ -22,25 +18,27 @@ function _denovo_dispatch() {
 function __denovo_dispatch() {
 	local request=$1
 	local REPLY
-	local -i isok fd
+	local -i isok fd ready
 	zmodload zsh/net/socket
 	zsocket "$DENOVO_DENO_SOCK" >&/dev/null
 	isok=$?
 	((isok == 0)) || return 1
 	fd=$REPLY
 	echo "$request" >&$fd
-	zle -F $fd __denovo_dispatch_receive
+	zmodload zsh/zselect
+	while zselect -t 10 $_denovo_listen_fd $fd 2> /dev/null; do
+		ready_fd=${(s/ /)reply[2]}
+		if (( ready_fd == $fd )); then
+			__denovo_dispatch_receive $ready_fd
+		else
+			_denovo_accept $ready_fd
+		fi
+	done
 }
 
 function __denovo_dispatch_receive() {
 	local fd=$1
-	zle -F $fd
-	if [[ -n "$_denovo_dispatch_callback" ]]; then
-		local REPLY="$(<&$fd)"
-		eval "$_denovo_dispatch_callback"
-		_denovo_dispatch_callback=""
-	else
-		cat <&$fd
-	fi
+	cat <&$fd
 	exec {fd}>&-
+	zle -R
 }

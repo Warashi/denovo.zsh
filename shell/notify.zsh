@@ -22,6 +22,11 @@ function __denovo_notify() {
 	isok=$?
 	((isok == 0)) || return 1
 	fd=$REPLY
-	echo "$1" >&$fd
+	echo "$request" >&$fd
 	exec {fd}>&-
+	zmodload zsh/zselect
+	while zselect -t 10 $_denovo_listen_fd 2> /dev/null; do
+		ready_fd=${(s/ /)reply[2]}
+		_denovo_accept $ready_fd
+	done
 }
