@@ -30,6 +30,7 @@ function __denovo_dispatch() {
 		ready_fd=${(s/ /)reply[2]}
 		if (( ready_fd == $fd )); then
 			cat <&$ready_fd
+			break
 		else
 			_denovo_accept $ready_fd
 		fi
