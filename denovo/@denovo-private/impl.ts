@@ -1,8 +1,19 @@
 import { Denovo, Dispatcher, Meta } from "../@denovo/mod.ts";
 
 export interface Session {
+  /**
+   * The dispatcher to use for calls.
+   */
   dispatcher: Dispatcher;
+
+  /**
+   * Evaluate a shell expression in the session.
+   */
   eval(expr: string): Promise<string>;
+
+  /**
+   * Call a method on the session.
+   */
   call(method: string, ...params: unknown[]): Promise<unknown>;
 }
 

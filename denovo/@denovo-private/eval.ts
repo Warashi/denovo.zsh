@@ -1,5 +1,8 @@
 import { DENOVO_ZSH_SOCK } from "./settings.ts";
 
+/**
+ * Evaluate a zsh script and return the output as a stream.
+ */
 export async function evalZsh(
   script: string,
 ): Promise<ReadableStream<Uint8Array>> {

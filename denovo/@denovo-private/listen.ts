@@ -2,6 +2,9 @@ import { using } from "./deps.ts";
 import { HostImpl } from "./host.ts";
 import { Service } from "./service.ts";
 
+/**
+ * Start the server.
+ */
 export async function start(
   zshSocketPath: string,
   denoSocketPath: string,
