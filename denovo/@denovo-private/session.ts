@@ -59,6 +59,7 @@ export class Session {
   }
 
   transform() {
+    // `this` points to generator in generator function, so we need to alias it
     // deno-lint-ignore no-this-alias
     const session = this;
     return async function* (src: ReadableStream<JsonValue>) {
@@ -76,6 +77,7 @@ export class Session {
             yield jsonrpc.ErrorInvalidRequest;
           }
         }
+        // we does not receive multiple request in one connection, so we can close connection after one request
         return;
       }
     };
