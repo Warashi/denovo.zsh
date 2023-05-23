@@ -10,13 +10,34 @@ import { NewError, NewSuccess, Response } from "./jsonrpc/mod.ts";
 
 const workerScript = "./worker/script.ts";
 
+/**
+ * Plugin information
+ */
 type Plugin = {
+  /**
+   * plugin script url
+   */
   script: string;
+  
+  /**
+   * plugin worker
+   */
   worker: Worker;
+
+  /**
+   * msgpack rpc session
+   */
   session: Session;
+  
+  /**
+   * msgpack rpc client
+   */
   client: Client;
 };
 
+/**
+ * Core functionality of denovo service
+ */
 export class Service implements Disposable {
   #plugins: Map<string, Plugin>;
   host: Host;
@@ -27,6 +48,9 @@ export class Service implements Disposable {
     this.host.register(new Invoker(this));
   }
 
+  /**
+   * Register a plugin
+   */
   register(
     name: string,
     script: string,
@@ -81,6 +105,9 @@ export class Service implements Disposable {
     return NewSuccess({});
   }
 
+  /**
+   * Reload a plugin
+   */
   reload(
     name: string,
     meta: Meta,
@@ -108,6 +135,9 @@ export class Service implements Disposable {
     return NewSuccess({});
   }
 
+  /**
+   * Dispatch a function call to a plugin
+   */
   async dispatch(name: string, fn: string, args: unknown[]): Promise<Response> {
     try {
       const plugin = this.#plugins.get(name);
@@ -131,6 +161,9 @@ export class Service implements Disposable {
     }
   }
 
+  /**
+   * Dispose the service
+   */
   dispose(): void {
     // Dispose all sessions
     for (const plugin of this.#plugins.values()) {
@@ -143,6 +176,10 @@ export class Service implements Disposable {
   }
 }
 
+/**
+ * Build a service session
+ * this session receive request from plugin worker, and send response back
+ */
 function buildServiceSession(
   name: string,
   meta: Meta,
@@ -181,6 +218,9 @@ function buildServiceSession(
   return session;
 }
 
+/**
+ * Resolve a script url
+ */
 function resolveScriptUrl(script: string): string {
   try {
     return toFileUrl(script).href;
