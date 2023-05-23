@@ -4,6 +4,8 @@
     "upgrade": "deno run --no-lock -A https://deno.land/x/udd/main.ts $(find . -name '*.ts')",
     "dev": "deno run --unstable --allow-env --allow-read --allow-write --watch denovo/@denovo-private/main.ts",
     "check": "deno check --unstable $(find . -name '*.ts')",
-    "lint": "deno lint --unstable $(find . -name '*.ts')"
+    "lint": "deno lint --unstable $(find . -name '*.ts')",
+    "format-zsh": "beautysh -t $(find . -name '*.zsh')",
+    "format-ts": "deno fmt --unstable $(find . -name '*.ts')",
  }
 }
