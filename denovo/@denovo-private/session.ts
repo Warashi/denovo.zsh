@@ -54,8 +54,8 @@ export class Session {
     }
   }
 
-  async notify(request: jsonrpc.Request): Promise<void> {
-    await this.dispatch(request);
+  notify(request: jsonrpc.Request): void {
+    this.dispatch(request);
   }
 
   transform() {
