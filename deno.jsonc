@@ -1,4 +1,5 @@
 {
+  "lock": false,
   "tasks": {
     "dev": "deno run --unstable --allow-env --allow-read --allow-write --watch denovo/@denovo-private/main.ts",
     "check": "deno check --unstable $(find . -name '*.ts')",
