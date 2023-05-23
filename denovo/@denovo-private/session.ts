@@ -13,10 +13,14 @@ export class Session {
     this.#listener = listener;
   }
 
+  /**
+   * Start session
+   */
   async start(): Promise<void> {
     for await (const conn of this.#listener) {
       this.accept(conn).catch((err) => {
         if (err instanceof Deno.errors.BadResource) {
+          // ignore BadResource because it occurs when the listener is closed
           return;
         }
         console.log(err);
@@ -24,6 +28,9 @@ export class Session {
     }
   }
 
+  /**
+   * Accept connection
+   */
   async accept(conn: Deno.Conn): Promise<void> {
     await conn.readable
       .pipeThrough(new TextDecoderStream())
@@ -35,6 +42,9 @@ export class Session {
       .pipeTo(conn.writable);
   }
 
+  /**
+   * Dispatch request and return response
+   */
   async dispatch(request: jsonrpc.Request): Promise<jsonrpc.Response> {
     try {
       const result = await this.onMessage(request);
@@ -54,10 +64,16 @@ export class Session {
     }
   }
 
+  /**
+   * Notify request and return immediately
+   */
   notify(request: jsonrpc.Request): void {
     this.dispatch(request);
   }
 
+  /**
+   * Transform stream
+   */
   transform() {
     // `this` points to generator in generator function, so we need to alias it
     // deno-lint-ignore no-this-alias
