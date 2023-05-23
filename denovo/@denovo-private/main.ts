@@ -17,18 +17,12 @@ if (zshSocketPath == null) {
   Deno.exit(1);
 }
 
-function cancellable(): [Promise<void>, () => void] {
-  let r: () => void = () => {};
-  const p = new Promise<void>((resolve, _reject) => {
-    r = resolve;
-  });
-  return [p, r];
+if (existsSync(denoSocketPath)) {
+  printf("env:DENOVO_DENO_SOCK is already exists: %s\n", denoSocketPath);
+  Deno.exit(1);
 }
 
-const [p, cancel] = cancellable()
-
 const signalHandler = () => {
-  cancel()
   Deno.removeSync(denoSocketPath);
   Deno.exit();
 };
@@ -37,12 +31,7 @@ Deno.addSignalListener("SIGINT", signalHandler);
 Deno.addSignalListener("SIGTERM", signalHandler);
 Deno.addSignalListener("SIGHUP", signalHandler);
 
-if (existsSync(denoSocketPath)) {
-  printf("env:DENOVO_DENO_SOCK is already exists: %s\n", denoSocketPath);
-  Deno.exit();
-}
-
-start(zshSocketPath, denoSocketPath);
+const p = start(zshSocketPath, denoSocketPath);
 (await evalZsh(`typeset -g _DENOVO_DENO_PID="${Deno.pid}"; _denovo_discover`)).pipeTo(Deno.stderr.writable);
 await p;
 
