@@ -1,7 +1,6 @@
-# denovo_dispatch callback name method ...params
-_denovo_dispatch_callback=""
+# denovo_dispatch name method ...params
 function denovo_dispatch() {
-	_denovo_dispatch $callback dispatch "$(_denovo_json_string_array $@)"
+	_denovo_dispatch dispatch "$(_denovo_json_string_array $@)"
 }
 
 function _denovo_dispatch() {
@@ -11,7 +10,6 @@ function _denovo_dispatch() {
 		params='[]'
 	fi
 	local request="$(_denovo_request "$method" "$params" 1)"
-	_denovo_dispatch_callback="$callback"
 	__denovo_dispatch "$request"
 }
 
