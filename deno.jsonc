@@ -7,5 +7,6 @@
     "lint": "deno lint --unstable $(find . -name '*.ts')",
     "format-zsh": "beautysh -t $(find . -name '*.zsh')",
     "format-ts": "deno fmt --unstable $(find . -name '*.ts')",
+    "format": "deno task format-zsh; deno task format-ts",
   }
 }
