@@ -17,7 +17,7 @@ export async function start(
     new HostImpl(listener, { transport: "unix", path: zshSocketPath }),
     async (host) => {
       await using(new Service(host), async () => {
-        await host.waitClosed()
+        await host.waitClosed();
       });
     },
   );

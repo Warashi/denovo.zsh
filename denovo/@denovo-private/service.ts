@@ -18,7 +18,7 @@ type Plugin = {
    * plugin script url
    */
   script: string;
-  
+
   /**
    * plugin worker
    */
@@ -28,7 +28,7 @@ type Plugin = {
    * msgpack rpc session
    */
   session: Session;
-  
+
   /**
    * msgpack rpc client
    */
