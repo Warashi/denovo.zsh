@@ -1,5 +1,5 @@
-# denovo_dispatch name method ...params
-function denovo_dispatch() {
+# denovo-dispatch name method ...params
+function denovo-dispatch() {
 	_denovo_dispatch dispatch "$(_denovo_json_string_array $@)"
 }
 

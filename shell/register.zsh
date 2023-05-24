@@ -1,4 +1,4 @@
-function denovo_register() {
+function denovo-register() {
 	local plugin=$1
 	local script=$2
 	local request="$(_denovo_json_array $(_denovo_json_string $plugin) $(_denovo_json_string $script))"
