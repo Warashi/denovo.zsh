@@ -16,7 +16,7 @@ export interface Meta {
   /**
    * host platform
    */
-  readonly platform: "windows" | "mac" | "linux";
+  readonly platform: "windows" | "mac" | "linux" | "unknown";
 }
 
 export interface Denovo {
