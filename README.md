@@ -10,7 +10,17 @@ shell = "zsh"
 [plugins]
 [plugins.denovo]
 github = "Warashi/denovo.zsh"
+[plugins.denovo-example]
+github = "Warashi/denovo-example"
 ```
+
+Then you can confirm if denovo is working properly by executing `denovo_dispatch denovo-example echo a b c` command like:
+```sh
+$ denovo_dispatch denovo-example echo a b c
+{"jsonrpc":"2.0","result":["a","b","c"],"id":1}
+```
+
+Once you've confirmed that denovo is working, you can remove `Warashi/denovo-example`.
 
 [deno]: https://deno.land/
 [sheldon]: https://sheldon.cli.rs/
