@@ -7,6 +7,7 @@ import { Host } from "./host.ts";
 import { Invoker, RegisterOptions, ReloadOptions } from "./invoker.ts";
 import { Meta } from "../@denovo/mod.ts";
 import { NewError, NewSuccess, Response } from "./jsonrpc/mod.ts";
+import { getConfig } from "./settings.ts";
 
 const workerScript = "./worker/script.ts";
 
@@ -88,7 +89,8 @@ export class Service implements Disposable {
       },
     );
     const scriptUrl = resolveScriptUrl(script);
-    worker.postMessage({ scriptUrl, meta });
+    const config = getConfig(name);
+    worker.postMessage({ scriptUrl, meta, config });
     const session = buildServiceSession(
       name,
       meta,

@@ -31,6 +31,11 @@ export interface Denovo {
   readonly meta: Meta;
 
   /**
+   * plugin-specific configuration
+   */
+  readonly config: unknown;
+
+  /**
    * dispatcher registered by plugin
    */
   dispatcher: Dispatcher;
