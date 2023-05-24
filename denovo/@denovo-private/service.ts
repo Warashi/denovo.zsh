@@ -1,4 +1,4 @@
-import { toFileUrl } from "./deps.ts";
+import { path } from "./deps.ts";
 import { assertArray, assertString } from "./deps.ts";
 import { Client, Session } from "./deps.ts";
 import { readableStreamFromWorker, writableStreamFromWorker } from "./deps.ts";
@@ -223,7 +223,7 @@ function buildServiceSession(
  */
 function resolveScriptUrl(script: string): string {
   try {
-    return toFileUrl(script).href;
+    return path.toFileUrl(script).href;
   } catch {
     return new URL(script, import.meta.url).href;
   }
