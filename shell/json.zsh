@@ -12,11 +12,11 @@ function _denovo_json_kv() {
 	local value=$2
 
 	key="$(_denovo_json_string "$key")"
-	printf '%s:%s' "$key" "$value"
+	printf '%s:%s\n' "$key" "$value"
 }
 
 function _denovo_json_array() {
-	printf '[%s]' "${(j:,:)@}"
+	printf '[%s]\n' "${(j:,:)@}"
 }
 
 function _denovo_json_string_array() {
@@ -28,7 +28,7 @@ function _denovo_json_string_array() {
 }
 
 function _denovo_json_object() {
-	printf '{%s}' "${(j:,:)@}"
+	printf '{%s}\n' "${(j:,:)@}"
 }
 
 function _denovo_request() {
