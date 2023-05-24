@@ -14,9 +14,9 @@ github = "Warashi/denovo.zsh"
 github = "Warashi/denovo-example"
 ```
 
-Then you can confirm if denovo is working properly by executing `denovo_dispatch denovo-example echo a b c` command like:
+Then you can confirm if denovo is working properly by executing `denovo-dispatch denovo-example echo a b c` command like:
 ```sh
-$ denovo_dispatch denovo-example echo a b c
+$ denovo-dispatch denovo-example echo a b c
 {"jsonrpc":"2.0","result":["a","b","c"],"id":1}
 ```
 
