@@ -14,7 +14,7 @@ function _denovo_discover() {
 				# ignore if plugin name starts with @ as special case
 				continue
 			fi
-			denovo_register $plugin $script
+			denovo-register $plugin $script
 		done
 	done
 }
