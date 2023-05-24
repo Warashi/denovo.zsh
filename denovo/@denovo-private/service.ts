@@ -1,4 +1,4 @@
-import { toFileUrl } from "./deps.ts";
+import { path } from "./deps.ts";
 import { assertArray, assertString } from "./deps.ts";
 import { Client, Session } from "./deps.ts";
 import { readableStreamFromWorker, writableStreamFromWorker } from "./deps.ts";
@@ -7,6 +7,7 @@ import { Host } from "./host.ts";
 import { Invoker, RegisterOptions, ReloadOptions } from "./invoker.ts";
 import { Meta } from "../@denovo/mod.ts";
 import { NewError, NewSuccess, Response } from "./jsonrpc/mod.ts";
+import { getConfig } from "./settings.ts";
 
 const workerScript = "./worker/script.ts";
 
@@ -88,7 +89,8 @@ export class Service implements Disposable {
       },
     );
     const scriptUrl = resolveScriptUrl(script);
-    worker.postMessage({ scriptUrl, meta });
+    const config = getConfig(name);
+    worker.postMessage({ scriptUrl, meta, config });
     const session = buildServiceSession(
       name,
       meta,
@@ -223,7 +225,7 @@ function buildServiceSession(
  */
 function resolveScriptUrl(script: string): string {
   try {
-    return toFileUrl(script).href;
+    return path.toFileUrl(script).href;
   } catch {
     return new URL(script, import.meta.url).href;
   }

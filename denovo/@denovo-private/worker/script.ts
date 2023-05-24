@@ -16,6 +16,7 @@ const worker = self as unknown as Worker & { name: string };
 async function main(
   scriptUrl: string,
   meta: Meta,
+  config: unknown,
 ): Promise<void> {
   const session = new Session(
     readableStreamFromWorker(worker),
@@ -43,20 +44,25 @@ async function main(
     // Avoid process death
     ev.preventDefault();
   });
-  const denovo: Denovo = new DenovoImpl(worker.name, meta, {
-    get dispatcher() {
-      return session.dispatcher;
+  const denovo: Denovo = new DenovoImpl(
+    worker.name,
+    meta,
+    config,
+    {
+      get dispatcher() {
+        return session.dispatcher;
+      },
+      set dispatcher(dispatcher) {
+        session.dispatcher = dispatcher;
+      },
+      call(method: string, ...params: unknown[]): Promise<unknown> {
+        return client.call(method, ...params);
+      },
+      async eval(expr: string): Promise<string> {
+        return ensureString(await client.call("eval", expr));
+      },
     },
-    set dispatcher(dispatcher) {
-      session.dispatcher = dispatcher;
-    },
-    call(method: string, ...params: unknown[]): Promise<unknown> {
-      return client.call(method, ...params);
-    },
-    async eval(expr: string): Promise<string> {
-      return ensureString(await client.call("eval", expr));
-    },
-  });
+  );
   try {
     // Import module with fragment so that reload works properly
     const mod = await import(`${scriptUrl}#${performance.now()}`);
@@ -97,8 +103,8 @@ worker.addEventListener("message", (event: MessageEvent<unknown>) => {
   if (!isMeta(event.data.meta)) {
     throw new Error(`Invalid 'meta' is passed: ${event.data.meta}`);
   }
-  const { scriptUrl, meta } = event.data;
-  main(scriptUrl, meta).catch((e) => {
+  const { scriptUrl, meta, config } = event.data;
+  main(scriptUrl, meta, config).catch((e) => {
     console.error(
       `Unexpected error occurred in '${scriptUrl}': ${e}`,
     );
