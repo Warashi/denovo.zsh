@@ -24,7 +24,7 @@ function __denovo_dispatch() {
 	fd=$REPLY
 	echo "$request" >&$fd
 	zmodload zsh/zselect
-	while zselect -t 10 -r $_denovo_listen_fd -r $fd 2> /dev/null; do
+	while zselect -r $_denovo_listen_fd -r $fd 2>${DENOVO_ROOT}/zsh.log; do
 		ready_fd=${(s/ /)reply[2]}
 		if (( ready_fd == $fd )); then
 			cat <&$ready_fd
