@@ -1,5 +1,5 @@
 export interface Dispatcher {
-  [key: string]: (...args: unknown[]) => unknown;
+  [key: string]: (...args: string[]) => unknown;
 }
 
 export interface Meta {
@@ -54,5 +54,5 @@ export interface Denovo {
    * @param fn function name
    * @param args function arguments
    */
-  dispatch(name: string, fn: string, ...args: unknown[]): Promise<unknown>;
+  dispatch(name: string, fn: string, ...args: string[]): Promise<unknown>;
 }
