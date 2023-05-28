@@ -54,6 +54,7 @@ export class Service implements Disposable {
    */
   register(
     name: string,
+    directory: string,
     script: string,
     meta: Meta,
     options: RegisterOptions,
@@ -90,9 +91,10 @@ export class Service implements Disposable {
     );
     const scriptUrl = resolveScriptUrl(script);
     const config = getConfig(name);
-    worker.postMessage({ scriptUrl, meta, config });
+    worker.postMessage({ scriptUrl, directory, meta, config });
     const session = buildServiceSession(
       name,
+      directory,
       meta,
       readableStreamFromWorker(worker),
       writableStreamFromWorker(worker),
@@ -112,6 +114,7 @@ export class Service implements Disposable {
    */
   reload(
     name: string,
+    directory: string,
     meta: Meta,
     options: ReloadOptions,
   ): Response {
@@ -131,9 +134,15 @@ export class Service implements Disposable {
         });
       }
     }
-    this.register(name, plugin.script, { ...meta, mode: "release" }, {
-      mode: "reload",
-    });
+    this.register(
+      name,
+      directory,
+      plugin.script,
+      { ...meta, mode: "release" },
+      {
+        mode: "reload",
+      },
+    );
     return NewSuccess({});
   }
 
@@ -184,6 +193,7 @@ export class Service implements Disposable {
  */
 function buildServiceSession(
   name: string,
+  directory: string,
   meta: Meta,
   reader: ReadableStream<Uint8Array>,
   writer: WritableStream<Uint8Array>,
@@ -198,7 +208,7 @@ function buildServiceSession(
   };
   session.dispatcher = {
     reload: () => {
-      service.reload(name, meta, {
+      service.reload(name, directory, meta, {
         mode: "skip",
       });
       return Promise.resolve();

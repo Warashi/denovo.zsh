@@ -26,6 +26,11 @@ export interface Denovo {
   readonly name: string;
 
   /**
+   * plugin directory
+   */
+  readonly directory: string;
+
+  /**
    * meta information
    */
   readonly meta: Meta;

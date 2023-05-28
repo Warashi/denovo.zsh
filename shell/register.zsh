@@ -1,8 +1,9 @@
 function denovo-register() {
 	local plugin=$1
-	local script=$2
+	local directory=$2
+	local script=$3
 	local meta=$(_denovo_meta)
-	local request="$(_denovo_json_array $(_denovo_json_string $plugin) $(_denovo_json_string $script) $meta)"
+	local request="$(_denovo_json_array $(_denovo_json_string $plugin) $(_denovo_json_string $directory) $(_denovo_json_string $script) $meta)"
 	_denovo_dispatch "register" "$request" >/dev/null
 }
 
@@ -30,15 +31,15 @@ function _denovo_host_platform() {
 }
 
 function _denovo_discover() {
-	for p in $DENOVO_PATH; do
-		for s in $p/denovo/*/main.ts; do
+	for directory in $DENOVO_PATH; do
+		for s in $directory/denovo/*/main.ts; do
 			local script=$s
 			local plugin=$(basename $(dirname $script))
 			if [[ $plugin = @* ]]; then
 				# ignore if plugin name starts with @ as special case
 				continue
 			fi
-			denovo-register $plugin $script
+			denovo-register $plugin $directory $script
 		done
 	done
 }

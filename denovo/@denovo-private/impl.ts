@@ -19,17 +19,20 @@ export interface Session {
 
 export class DenovoImpl implements Denovo {
   readonly name: string;
+  readonly directory: string;
   readonly meta: Meta;
   readonly config: unknown;
   #sesssion: Session;
 
   constructor(
     name: string,
+    directory: string,
     meta: Meta,
     config: unknown,
     session: Session,
   ) {
     this.name = name;
+    this.directory = directory;
     this.meta = meta;
     this.config = config;
     this.#sesssion = session;

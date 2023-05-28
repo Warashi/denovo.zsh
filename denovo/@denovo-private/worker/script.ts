@@ -15,6 +15,7 @@ const worker = self as unknown as Worker & { name: string };
 
 async function main(
   scriptUrl: string,
+  directory: string,
   meta: Meta,
   config: unknown,
 ): Promise<void> {
@@ -46,6 +47,7 @@ async function main(
   });
   const denovo: Denovo = new DenovoImpl(
     worker.name,
+    directory,
     meta,
     config,
     {
@@ -100,11 +102,12 @@ patchConsole(`(${worker.name})`);
 worker.addEventListener("message", (event: MessageEvent<unknown>) => {
   assertObject(event.data);
   assertString(event.data.scriptUrl);
+  assertString(event.data.directory);
   if (!isMeta(event.data.meta)) {
     throw new Error(`Invalid 'meta' is passed: ${event.data.meta}`);
   }
-  const { scriptUrl, meta, config } = event.data;
-  main(scriptUrl, meta, config).catch((e) => {
+  const { scriptUrl, directory, meta, config } = event.data;
+  main(scriptUrl, directory, meta, config).catch((e) => {
     console.error(
       `Unexpected error occurred in '${scriptUrl}': ${e}`,
     );
