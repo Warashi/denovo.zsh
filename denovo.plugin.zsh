@@ -1,8 +1,4 @@
 #!/usr/bin/local zsh
-if [[ -n "$DENOVO_LOADED" ]]; then
-	return
-fi
-export DENOVO_LOADED=1
 
 : ${DENOVO_ROOT:=${0:a:h}}
 : ${DENOVO_SOCK_DIR:="${XDG_RUNTIME_DIR:-${TMPDIR:-/tmp}}/denovo-${UID}"}
