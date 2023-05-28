@@ -1,4 +1,5 @@
-import { Denovo, Dispatcher, Meta } from "../@denovo/mod.ts";
+import type { Denovo, Dispatcher, Meta } from "../@denovo/mod.ts";
+import { isError, isResponse } from "./jsonrpc/mod.ts";
 
 export interface Session {
   /**
@@ -55,6 +56,13 @@ export class DenovoImpl implements Denovo {
     fn: string,
     ...args: unknown[]
   ): Promise<unknown> {
-    return await this.#sesssion.call("dispatch", name, fn, ...args);
+    const response = await this.#sesssion.call("dispatch", name, fn, ...args);
+    if (!isResponse(response)) {
+      throw new Error(`dispatch returned unknown type: ${response}`);
+    }
+    if (isError(response)) {
+      throw new Error(`dispatch failed: ${response.error.message}`);
+    }
+    return response.result;
   }
 }
