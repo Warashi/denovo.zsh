@@ -2,9 +2,10 @@ function _denovo_json_string() {
 	local arg=$1
 	arg="${arg//\\/\\\\}"   # escape backslash
 	arg="${arg//$'\n'/\\n}" # escape new-line
+	arg="${arg//$'\t'/\\t}" # escape tab
 	arg="${arg//\"/\\\"}"   # escape quote
 	arg="\"${^arg}\""       # quote
-	echo "$arg"
+	echo -E "$arg"
 }
 
 function _denovo_json_kv() {
@@ -24,7 +25,7 @@ function _denovo_json_string_array() {
 	for item in $@; do
 		result+=("$(_denovo_json_string "$item")")
 	done
-	echo "$(_denovo_json_array ${(@)result})"
+	echo -E "$(_denovo_json_array ${(@)result})"
 }
 
 function _denovo_json_object() {
@@ -44,5 +45,5 @@ function _denovo_request() {
 	else
 		local request=$(_denovo_json_object "$jsonrpc_kv" "$method_kv" "$params_kv")
 	fi
-	echo "$request"
+	echo -E "$request"
 }
