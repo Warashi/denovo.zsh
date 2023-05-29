@@ -22,7 +22,7 @@ function __denovo_dispatch() {
 	isok=$?
 	((isok == 0)) || return 1
 	fd=$REPLY
-	echo "$request" >&$fd
+	echo -E "$request" >&$fd
 	zmodload zsh/zselect
 	while zselect -r $_denovo_listen_fd -r $fd 2>${DENOVO_ROOT}/zsh.log; do
 		ready_fd=${(s/ /)reply[2]}
