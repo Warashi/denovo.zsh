@@ -1,3 +1,4 @@
+import { readAll } from "./deps.ts";
 import { DENOVO_ZSH_SOCK } from "./settings.ts";
 
 /**
@@ -5,7 +6,7 @@ import { DENOVO_ZSH_SOCK } from "./settings.ts";
  */
 export async function evalZsh(
   script: string,
-): Promise<ReadableStream<Uint8Array>> {
+): Promise<string> {
   const socketPath = DENOVO_ZSH_SOCK;
   if (socketPath == null) {
     throw new Error("DENOVO_ZSH_SOCK is empty");
@@ -14,7 +15,11 @@ export async function evalZsh(
     transport: "unix",
     path: socketPath,
   });
-  await conn.write(new TextEncoder().encode(script));
-  await conn.closeWrite();
-  return conn.readable;
+  try {
+    await conn.write(new TextEncoder().encode(script));
+    await conn.closeWrite();
+    return new TextDecoder().decode(await readAll(conn));
+  } finally {
+    conn.close();
+  }
 }
