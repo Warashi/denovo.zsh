@@ -34,9 +34,13 @@ export class HostImpl implements Host {
 
   async eval(expr: string): Promise<string> {
     const conn = await Deno.connect(this.#connectOptions);
-    await conn.write(new TextEncoder().encode(expr));
-    await conn.closeWrite();
-    return new TextDecoder().decode(await readAll(conn));
+    try {
+      await conn.write(new TextEncoder().encode(expr));
+      await conn.closeWrite();
+      return new TextDecoder().decode(await readAll(conn));
+    } finally {
+      conn.close();
+    }
   }
 
   register(invoker: Invoker): Response {
