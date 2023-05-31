@@ -35,6 +35,7 @@ const p = start(zshSocketPath, denoSocketPath);
 
 const discovered = await evalZsh(
   `typeset -g _DENOVO_DENO_PID="${Deno.pid}"; _denovo_discover`,
+  { transport: "unix", path: zshSocketPath },
 );
 Deno.stderr.write(new TextEncoder().encode(discovered));
 
