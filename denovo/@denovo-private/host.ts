@@ -1,7 +1,8 @@
 import { Invoker, isInvokerMethod } from "./invoker.ts";
 import { Session } from "./session.ts";
 import { NewError, NewSuccess, Response } from "./jsonrpc/mod.ts";
-import { Disposable, readAll } from "./deps.ts";
+import { Disposable } from "./deps.ts";
+import { evalZsh } from "./eval.ts";
 
 export interface Host extends Disposable {
   /**
@@ -32,15 +33,8 @@ export class HostImpl implements Host {
     this.#connectOptions = opts;
   }
 
-  async eval(expr: string): Promise<string> {
-    const conn = await Deno.connect(this.#connectOptions);
-    try {
-      await conn.write(new TextEncoder().encode(expr));
-      await conn.closeWrite();
-      return new TextDecoder().decode(await readAll(conn));
-    } finally {
-      conn.close();
-    }
+  eval(expr: string): Promise<string> {
+    return evalZsh(expr, this.#connectOptions);
   }
 
   register(invoker: Invoker): Response {
