@@ -36,19 +36,21 @@ export class Invoker {
 
   register(
     name: string,
+    directory: string,
     script: string,
     meta: Meta,
     options: RegisterOptions,
   ): Response {
-    return this.#service.register(name, script, meta, options);
+    return this.#service.register(name, directory, script, meta, options);
   }
 
   reload(
     name: string,
+    directory: string,
     meta: Meta,
     options: ReloadOptions,
   ): Response {
-    return this.#service.reload(name, meta, options);
+    return this.#service.reload(name, directory, meta, options);
   }
 
   dispatch(name: string, fn: string, ...args: unknown[]): Promise<Response> {
