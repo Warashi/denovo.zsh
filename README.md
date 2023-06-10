@@ -37,4 +37,4 @@ Some code in this repository is borrowed from [denops.vim][denops.vim] and [zeno
 [zeno.zsh]: https://github.com/yuki-yano/zeno.zsh
 
 # License
-The code follows MIT license written in [LICENSE][./LICENSE]. Contributors need to agree that any modifications sent in this repository follow the license.
+The code follows MIT license written in [LICENSE](./LICENSE). Contributors need to agree that any modifications sent in this repository follow the license.
