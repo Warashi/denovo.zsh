@@ -29,7 +29,7 @@ export class HostImpl implements Host {
     listener: Deno.Listener,
     opts: Deno.UnixConnectOptions,
   ) {
-    this.#session = new Session(listener, opts);
+    this.#session = new Session(listener);
     this.#connectOptions = opts;
   }
 
