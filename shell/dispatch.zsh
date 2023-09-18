@@ -51,7 +51,8 @@ function __denovo_dispatch() {
 	fd=$REPLY
 	echo -E "$request" >&$fd
 	if [[ -z "$dispatch_id" ]]; then
-		exec {fd}>&-
+		# close file descriptor in callback
+		__denovo_register_callback $fd ""
 	elif [[ -n "$callback" ]]; then
 		__denovo_register_callback $fd "$callback"
 	else
