@@ -56,7 +56,7 @@ function __denovo_dispatch() {
 		__denovo_register_callback $fd "$callback"
 	else
 		zmodload zsh/zselect
-		while zselect -r $_denovo_listen_fd -r $fd 2>${DENOVO_ROOT}/zsh.log; do
+		while zselect -r $_denovo_listen_fd -r $fd 2>>${DENOVO_ROOT}/zsh.log; do
 			ready_fd=${(s/ /)reply[2]}
 			if (( ready_fd == $fd )); then
 				cat <&$ready_fd
@@ -82,7 +82,7 @@ function __denovo_dispatch_callback() {
 	local callback=${_denovo_dispatch_callbacks[$fd]}
 	zle -F $fd
 	if [[ -n "$callback" ]]; then
-		eval "$callback" <&$fd >> /tmp/denovo.log
+		eval "$callback" <&$fd
 	fi
 	exec {fd}>&-
 }
