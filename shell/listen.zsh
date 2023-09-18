@@ -12,7 +12,7 @@ function _denovo_listen() {
 }
 
 function _denovo_accept() {
-	local REPLY request method params
+	local REPLY
 	local -i isok fd
 	zsocket -a $1
 	isok=$?
@@ -20,7 +20,6 @@ function _denovo_accept() {
 	fd=$REPLY
 	eval "$(<&$fd)" >&$fd
 	exec {fd}>&-
-	zle -R
 }
 zle -N _denovo_accept
 

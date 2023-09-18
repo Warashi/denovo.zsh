@@ -4,7 +4,7 @@ function denovo-register() {
 	local script=$3
 	local meta=$(_denovo_meta)
 	local request="$(_denovo_json_array $(_denovo_json_string $plugin) $(_denovo_json_string $directory) $(_denovo_json_string $script) $meta)"
-	_denovo_dispatch "register" "$request" >/dev/null
+	_denovo_notify "register" "$request" >/dev/null
 }
 
 function _denovo_meta() {
