@@ -75,7 +75,7 @@ function __denovo_register_callback() {
 	local fd=$1
 	local callback=$2
 	_denovo_dispatch_callbacks[$fd]="$callback"
-	zle -F $fd __denovo_dispatch_callback
+	zle -F -w $fd __denovo_dispatch_callback
 }
 
 function __denovo_dispatch_callback() {
@@ -87,3 +87,4 @@ function __denovo_dispatch_callback() {
 	fi
 	exec {fd}>&-
 }
+zle -N __denovo_dispatch_callback
