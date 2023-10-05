@@ -1,4 +1,4 @@
-import { start } from "./listen.ts";
+import { start, startJsonServer } from "./listen.ts";
 import { printf } from "./deps.ts";
 import { existsSync } from "./deps.ts";
 import {
@@ -9,7 +9,7 @@ import {
 import { evalZsh } from "./eval.ts";
 
 const denoSocketPath = DENOVO_DENO_SOCK;
-const denoJSONSocketPath = DENOVO_DENO_JSON_SOCK;
+const denoJsonSocketPath = DENOVO_DENO_JSON_SOCK;
 const zshSocketPath = DENOVO_ZSH_SOCK;
 
 if (denoSocketPath == null) {
@@ -17,7 +17,7 @@ if (denoSocketPath == null) {
   Deno.exit(1);
 }
 
-if (denoJSONSocketPath == null) {
+if (denoJsonSocketPath == null) {
   printf("env:DENOVO_DENO_JSON_SOCK is empty\n");
   Deno.exit(1);
 }
@@ -32,17 +32,17 @@ if (existsSync(denoSocketPath)) {
   Deno.exit(1);
 }
 
-if (existsSync(denoJSONSocketPath)) {
+if (existsSync(denoJsonSocketPath)) {
   printf(
     "env:DENOVO_DENO_JSON_SOCK is already exists: %s\n",
-    denoJSONSocketPath,
+    denoJsonSocketPath,
   );
   Deno.exit(1);
 }
 
 const signalHandler = () => {
   Deno.removeSync(denoSocketPath);
-  Deno.removeSync(denoJSONSocketPath);
+  Deno.removeSync(denoJsonSocketPath);
   Deno.exit();
 };
 
@@ -50,9 +50,14 @@ Deno.addSignalListener("SIGINT", signalHandler);
 Deno.addSignalListener("SIGTERM", signalHandler);
 Deno.addSignalListener("SIGHUP", signalHandler);
 
-start(zshSocketPath, denoSocketPath);
+const p = Promise.all([
+  start(zshSocketPath, denoSocketPath),
+  startJsonServer(denoJsonSocketPath),
+]);
 
 await evalZsh(
   `typeset -g _DENOVO_DENO_PID="${Deno.pid}"; _denovo_discover`,
   { transport: "unix", path: zshSocketPath },
 );
+
+await p;
