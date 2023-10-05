@@ -1,5 +1,6 @@
 import {
   JsonStringifyStream,
+  JsonValue,
   TextLineStream,
   toTransformStream,
 } from "./deps.ts";
@@ -25,7 +26,6 @@ export class JsonOperatorSession {
           // ignore BadResource because it occurs when the listener is closed
           return;
         }
-        console.log(err);
       });
     }
   }
@@ -48,51 +48,121 @@ export class JsonOperatorSession {
    */
   transform() {
     return async function* (src: ReadableStream<string>) {
-      let next: "key" | "type" | "value" = "key";
-      const object: Record<string, string | number | boolean | null> = {};
-      let currentKey = "";
-      let currentType = "";
-      for await (const chunk of src) {
-        switch (next) {
-          case "key":
-            if (chunk === "") {
-              yield object;
-              return; // we serve only one object for one connection
-            }
-            next = "type";
-            currentKey = chunk;
-            break;
-          case "type":
-            if (currentKey === "") {
-              throw new Error("unreachable");
-            }
-            if (chunk === "null") {
-              object[currentKey] = null;
-              next = "key";
-              break;
-            }
-            next = "value";
-            currentType = chunk;
-            break;
-          case "value":
-            if (currentKey === "" || currentType === "") {
-              throw new Error("unreachable");
-            }
-            next = "type";
-            switch (currentType) {
-              case "string":
-                object[currentKey] = chunk;
-                break;
-              case "number":
-                object[currentKey] = parseFloat(chunk);
-                break;
-              case "boolean":
-                object[currentKey] = chunk === "true";
-                break;
-            }
-            break;
-        }
+      const values = src.values();
+      const asyncIterable: AsyncIterable<string> = {
+        [Symbol.asyncIterator](): AsyncIterator<string> {
+          return {
+            async next() {
+              const v = await values.next();
+              return v;
+            },
+            return(_: string) {
+              return Promise.resolve({ value: "", done: false });
+            },
+          };
+        },
+      };
+      const parser = new Parser(asyncIterable);
+      while (true) {
+        const object = await parser.parse();
+        yield object;
+        return;
       }
     };
+  }
+}
+
+class Parser {
+  private src: AsyncIterable<string>;
+
+  constructor(src: AsyncIterable<string>) {
+    this.src = src;
+  }
+
+  parse(): Promise<JsonValue> {
+    return this.parseValue();
+  }
+
+  private async parseObject(): Promise<Record<string, JsonValue>> {
+    const object: Record<string, JsonValue> = {};
+    for await (const chunk of this.src) {
+      switch (chunk) {
+        case "":
+          continue;
+        case "object-end":
+          return object;
+        default:
+          object[chunk] = await this.parseValue();
+      }
+    }
+    throw new Error("unreachable parseObject");
+  }
+
+  private async parseArray(): Promise<JsonValue[]> {
+    const array: JsonValue[] = [];
+    for await (const chunk of this.src) {
+      switch (chunk) {
+        case "":
+          continue;
+        case "array-end":
+          return array;
+        default:
+          array.push(await this.parseValue(chunk));
+      }
+    }
+    throw new Error("unreachable parseArray");
+  }
+
+  private async parseValue(type?: string): Promise<JsonValue> {
+    if (type) {
+      return this.parseValueSwitch(type);
+    }
+    for await (const chunk of this.src) {
+      return this.parseValueSwitch(chunk);
+    }
+    throw new Error("unreachable parseValue");
+  }
+
+  private parseValueSwitch(type: string): Promise<JsonValue> {
+    switch (type) {
+      case "null":
+        return this.parseNull();
+      case "string":
+        return this.parseString();
+      case "number":
+        return this.parseNumber();
+      case "boolean":
+        return this.parseBoolean();
+      case "array-start":
+        return this.parseArray();
+      case "object-start":
+        return this.parseObject();
+    }
+    throw new Error("unreachable parseValueSwitch");
+  }
+
+  private async parseString(): Promise<string> {
+    for await (const chunk of this.src) {
+      return chunk;
+    }
+    throw new Error("unreachable parseString");
+  }
+
+  private async parseNumber(): Promise<number> {
+    for await (const chunk of this.src) {
+      return parseFloat(chunk);
+    }
+    throw new Error("unreachable parseNumber");
+  }
+
+  private async parseBoolean(): Promise<boolean> {
+    for await (const chunk of this.src) {
+      return chunk === "true";
+    }
+    throw new Error("unreachable parseBoolean");
+  }
+
+  private parseNull(): Promise<null> {
+    return Promise.resolve(null);
   }
 }
