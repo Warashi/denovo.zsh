@@ -1,14 +1,24 @@
 import { start } from "./listen.ts";
 import { printf } from "./deps.ts";
 import { existsSync } from "./deps.ts";
-import { DENOVO_DENO_SOCK, DENOVO_ZSH_SOCK } from "./settings.ts";
+import {
+  DENOVO_DENO_JSON_SOCK,
+  DENOVO_DENO_SOCK,
+  DENOVO_ZSH_SOCK,
+} from "./settings.ts";
 import { evalZsh } from "./eval.ts";
 
 const denoSocketPath = DENOVO_DENO_SOCK;
+const denoJSONSocketPath = DENOVO_DENO_JSON_SOCK;
 const zshSocketPath = DENOVO_ZSH_SOCK;
 
 if (denoSocketPath == null) {
   printf("env:DENOVO_DENO_SOCK is empty\n");
+  Deno.exit(1);
+}
+
+if (denoJSONSocketPath == null) {
+  printf("env:DENOVO_DENO_JSON_SOCK is empty\n");
   Deno.exit(1);
 }
 
@@ -22,8 +32,17 @@ if (existsSync(denoSocketPath)) {
   Deno.exit(1);
 }
 
+if (existsSync(denoJSONSocketPath)) {
+  printf(
+    "env:DENOVO_DENO_JSON_SOCK is already exists: %s\n",
+    denoJSONSocketPath,
+  );
+  Deno.exit(1);
+}
+
 const signalHandler = () => {
   Deno.removeSync(denoSocketPath);
+  Deno.removeSync(denoJSONSocketPath);
   Deno.exit();
 };
 
