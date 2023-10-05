@@ -5,18 +5,18 @@ import { Service } from "./service.ts";
 /**
  * Start the server.
  */
-export async function start(
+export function start(
   zshSocketPath: string,
   denoSocketPath: string,
-): Promise<void> {
+): void {
   const listener = Deno.listen({
     transport: "unix",
     path: denoSocketPath,
   });
-  await using(
+  using(
     new HostImpl(listener, { transport: "unix", path: zshSocketPath }),
-    async (host) => {
-      await using(new Service(host), async () => {
+    (host) => {
+      using(new Service(host), async () => {
         await host.waitClosed();
       });
     },

@@ -50,12 +50,9 @@ Deno.addSignalListener("SIGINT", signalHandler);
 Deno.addSignalListener("SIGTERM", signalHandler);
 Deno.addSignalListener("SIGHUP", signalHandler);
 
-const p = start(zshSocketPath, denoSocketPath);
+start(zshSocketPath, denoSocketPath);
 
-const discovered = await evalZsh(
+await evalZsh(
   `typeset -g _DENOVO_DENO_PID="${Deno.pid}"; _denovo_discover`,
   { transport: "unix", path: zshSocketPath },
 );
-Deno.stderr.write(new TextEncoder().encode(discovered));
-
-await p;
