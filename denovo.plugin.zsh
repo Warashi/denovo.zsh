@@ -1,4 +1,4 @@
-#!/usr/bin/local zsh
+#!/usr/bin/env zsh
 
 : ${DENOVO_ROOT:=${0:a:h}}
 : ${DENOVO_SOCK_DIR:="${XDG_RUNTIME_DIR:-${TMPDIR:-/tmp}}/denovo-${UID}"}
