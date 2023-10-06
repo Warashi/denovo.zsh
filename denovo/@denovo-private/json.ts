@@ -28,7 +28,7 @@ export class JsonOperatorSession {
   /**
    * Accept connection
    */
-  async accept(conn: Deno.Conn): Promise<void> {
+  private async accept(conn: Deno.Conn): Promise<void> {
     await conn.readable
       .pipeThrough(new TextDecoderStream())
       .pipeThrough(new TextLineStream())
@@ -40,7 +40,7 @@ export class JsonOperatorSession {
   /**
    * Transform stream
    */
-  transform() {
+  private transform() {
     return async function* (src: ReadableStream<string>) {
       const values = src.values();
       const asyncIterable: AsyncIterable<string> = {
@@ -59,22 +59,57 @@ export class JsonOperatorSession {
       for await (const chunk of asyncIterable) {
         switch (chunk) {
           case "construct-json":
-            yield JSON.stringify(await new Parser(asyncIterable).parse());
+            yield await constructJson(asyncIterable);
             return;
-          case "parse-json":
+          case "query-json":
+            yield await queryJson(asyncIterable);
+            return;
+          case "unquote-json":
+            yield await unquoteJson(asyncIterable);
             return;
           default:
             throw new Error(`unknown command: ${chunk}`);
         }
       }
-      const parser = new Parser(asyncIterable);
-      while (true) {
-        const object = await parser.parse();
-        yield JSON.stringify(object);
-        return;
-      }
     };
   }
+}
+
+async function unquoteJson(src: AsyncIterable<string>): Promise<string> {
+  for await (const chunk of src) {
+    const object = JSON.parse(chunk);
+    switch (typeof object) {
+      case "string":
+        return object;
+      default:
+        return JSON.stringify(object);
+    }
+  }
+  throw new Error("unreachable unquoteJson");
+}
+
+async function queryJson(src: AsyncIterable<string>): Promise<string> {
+  let field = undefined;
+  for await (const chunk of src) {
+    if (field === undefined) {
+      field = chunk;
+      continue;
+    }
+    const object = JSON.parse(chunk);
+    switch (typeof object) {
+      case "object":
+        return JSON.stringify(object[field]);
+      default:
+        return JSON.stringify(null);
+    }
+  }
+  throw new Error("unreachable queryJson");
+}
+
+async function constructJson(src: AsyncIterable<string>): Promise<string> {
+  const parser = new Parser(src);
+  const object = await parser.parse();
+  return JSON.stringify(object);
 }
 
 class Parser {
