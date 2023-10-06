@@ -1,9 +1,4 @@
-import {
-  JsonStringifyStream,
-  JsonValue,
-  TextLineStream,
-  toTransformStream,
-} from "./deps.ts";
+import { JsonValue, TextLineStream, toTransformStream } from "./deps.ts";
 
 export class JsonOperatorSession {
   #listener: Deno.Listener;
@@ -38,7 +33,6 @@ export class JsonOperatorSession {
       .pipeThrough(new TextDecoderStream())
       .pipeThrough(new TextLineStream())
       .pipeThrough(toTransformStream(this.transform()))
-      .pipeThrough(new JsonStringifyStream())
       .pipeThrough(new TextEncoderStream())
       .pipeTo(conn.writable);
   }
@@ -62,10 +56,21 @@ export class JsonOperatorSession {
           };
         },
       };
+      for await (const chunk of asyncIterable) {
+        switch (chunk) {
+          case "construct-json":
+            yield JSON.stringify(await new Parser(asyncIterable).parse());
+            return;
+          case "parse-json":
+            return;
+          default:
+            throw new Error(`unknown command: ${chunk}`);
+        }
+      }
       const parser = new Parser(asyncIterable);
       while (true) {
         const object = await parser.parse();
-        yield object;
+        yield JSON.stringify(object);
         return;
       }
     };
@@ -137,8 +142,9 @@ class Parser {
         return this.parseArray();
       case "object-start":
         return this.parseObject();
+      default:
+        throw new Error(`unknown type: ${type}`);
     }
-    throw new Error("unreachable parseValueSwitch");
   }
 
   private async parseString(): Promise<string> {

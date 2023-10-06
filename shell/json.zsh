@@ -41,7 +41,8 @@ function _denovo_construct_jsonvalue() {
 	isok=$?
 	((isok == 0)) || return 1
 	fd=$REPLY
-	print "$value" >&$fd
+	local request="$(_denovo_printf '%s\n%s\n' 'construct-json' "$value")"
+	print "$request" >&$fd
 	local result="$(<&$fd)"
 	echo -E "$result"
 	exec {fd}<&-
