@@ -183,8 +183,14 @@ class Parser {
   }
 
   private async parseString(): Promise<string> {
+    const lines = [];
     for await (const chunk of this.src) {
-      return chunk;
+      switch (chunk) {
+        case "\0":
+          return lines.join("\n");
+        default:
+          lines.push(chunk);
+      }
     }
     throw new Error("unreachable parseString");
   }

@@ -3,7 +3,7 @@ function _denovo_printf (){
 }
 
 function _denovo_json_string() {
-	_denovo_json_atom 'string' "$1"
+	_denovo_printf 'string\n%s\n\0\n' "$1"
 }
 
 function _denovo_json_atom() {
@@ -25,7 +25,7 @@ function _denovo_json_array() {
 function _denovo_json_string_array() {
 	local -a result=()
 	for item in $@; do
-		result+=("$(_denovo_json_atom 'string' "$item")")
+		result+=("$(_denovo_json_string "$item")")
 	done
 	echo -E "$(_denovo_json_array ${(@)result})"
 }
@@ -52,8 +52,8 @@ function _denovo_request() {
 	local method=$1
 	local params=$2
 	local id=$3
-	local jsonrpc_kv="$(_denovo_json_kv "jsonrpc" "$(_denovo_json_atom string "2.0")")"
-	local method_kv="$(_denovo_json_kv "method" "$(_denovo_json_atom string "$method")")"
+	local jsonrpc_kv="$(_denovo_json_kv "jsonrpc" "$(_denovo_json_string "2.0")")"
+	local method_kv="$(_denovo_json_kv "method" "$(_denovo_json_string "$method")")"
 	local params_kv="$(_denovo_json_kv "params" "$params")"
 	if [[ -n "$id" ]]; then
 		local id_kv="$(_denovo_json_kv "id" "$(_denovo_json_atom number "$id")")"
