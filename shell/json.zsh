@@ -1,5 +1,5 @@
 function _denovo_printf (){
-	builtin printf '%b' "$(builtin printf "$@")"
+	print -f "$@"
 }
 
 function _denovo_json_string() {
