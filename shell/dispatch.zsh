@@ -50,24 +50,31 @@ function __denovo_dispatch() {
 	((isok == 0)) || return 1
 	fd=$REPLY
 	echo -E "$request" >&$fd
+
 	if [[ -z "$dispatch_id" ]]; then
-		# close file descriptor in callback
-		__denovo_register_callback $fd ""
-	elif [[ -n "$callback" ]]; then
-		__denovo_register_callback $fd "$callback"
-	else
-		zmodload zsh/zselect
-		while zselect -r $_denovo_listen_fd -r $fd 2>>${DENOVO_ROOT}/zsh.log; do
-			ready_fd=${(s/ /)reply[2]}
-			if (( ready_fd == $fd )); then
-				cat <&$ready_fd
-				exec {fd}>&-
-				break
-			else
-				_denovo_accept $ready_fd
-			fi
-		done
+		# no dispatch_id means we're not expecting a response
+		exec {fd}>&-
+		return
 	fi
+
+	if [[ -n "$callback" ]]; then
+		# callback means we're expecting a response, but we're not going to wait
+		__denovo_register_callback $fd "$callback"
+		return
+	fi
+
+	# no callback means we're expecting a response and we're going to wait
+	zmodload zsh/zselect
+	while zselect -r $_denovo_listen_fd -r $fd 2>>${DENOVO_ROOT}/zsh.log; do
+		ready_fd=${(s/ /)reply[2]}
+		if (( ready_fd == $fd )); then
+			cat <&$ready_fd
+			exec {fd}>&-
+			break
+		else
+			_denovo_accept $ready_fd
+		fi
+	done
 }
 
 typeset -g -A _denovo_dispatch_callbacks
