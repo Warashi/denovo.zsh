@@ -4,45 +4,30 @@ import { TextLineStream, toTransformStream } from "./deps.ts";
 import { isNumber, isObject } from "./deps.ts";
 
 export class Session {
-  #listener: Deno.Listener;
+  #writer: WritableStream<Uint8Array>;
+  #reader: ReadableStream<Uint8Array>;
   onMessage: (message: jsonrpc.Request) => Promise<unknown> = async () => {};
 
   constructor(
-    listener: Deno.Listener,
+    w: WritableStream<Uint8Array>,
+    r: ReadableStream<Uint8Array>,
   ) {
-    this.#listener = listener;
-  }
-
-  /**
-   * Start session
-   */
-  async start(): Promise<void> {
-    for await (const conn of this.#listener) {
-      this.accept(conn.writable, conn.readable).catch((err) => {
-        if (err instanceof Deno.errors.BadResource) {
-          // ignore BadResource because it occurs when the listener is closed
-          return;
-        }
-        console.log(err);
-      });
-    }
+    this.#writer = w;
+    this.#reader = r;
   }
 
   /**
    * Accept connection
    */
-  async accept(
-    w: WritableStream<Uint8Array>,
-    r: ReadableStream<Uint8Array>,
-  ): Promise<void> {
-    await r
+  async process(): Promise<void> {
+    await this.#reader
       .pipeThrough(new TextDecoderStream())
       .pipeThrough(new TextLineStream())
       .pipeThrough(new JsonParseStream())
       .pipeThrough(toTransformStream(this.transform()))
       .pipeThrough(new JsonStringifyStream())
       .pipeThrough(new TextEncoderStream())
-      .pipeTo(w);
+      .pipeTo(this.#writer);
   }
 
   /**

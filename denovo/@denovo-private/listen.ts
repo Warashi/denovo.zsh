@@ -6,22 +6,29 @@ import { Service } from "./service.ts";
 /**
  * Start the server.
  */
-export function start(
+export async function start(
   zshSocketPath: string,
   denoSocketPath: string,
 ): Promise<void> {
+  const evalOpts = {
+    transport: "unix",
+    path: zshSocketPath,
+  } as const satisfies Deno.UnixConnectOptions;
+
   const listener = Deno.listen({
     transport: "unix",
     path: denoSocketPath,
   });
-  return using(
-    new HostImpl(listener, { transport: "unix", path: zshSocketPath }),
-    (host) => {
-      using(new Service(host), async () => {
-        await host.waitClosed();
-      });
-    },
-  );
+  for await (const conn of listener) {
+    using(
+      new HostImpl(conn.writable, conn.readable, evalOpts),
+      (host) => {
+        using(new Service(host), async () => {
+          await host.waitClosed();
+        });
+      },
+    );
+  }
 }
 
 export function startJsonServer(
