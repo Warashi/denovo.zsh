@@ -14,6 +14,25 @@ function denovo-dispatch-async() {
 	_denovo_dispatch dispatch "$(_denovo_json_string_array $@)" "$callback"
 }
 
+typeset -g -i _denovo_fd=-1
+function _denovo_connect() {
+	local REPLY
+	local -i isok
+	zmodload zsh/net/socket
+	zsocket "$DENOVO_DENO_SOCK" >&/dev/null
+	isok=$?
+	((isok == 0)) || return 1
+	_denovo_fd=$REPLY
+	zle -F -w $_denovo_fd _denovo_accept_result
+}
+
+function _denovo_accept_result() {
+	local REPLY
+
+	read -u $1 -r REPLY
+	__denovo_dispatch_callback "$REPLY"
+}
+zle -N _denovo_accept_result
 
 function _denovo_notify() {
 	local method="$1"
@@ -42,56 +61,67 @@ function __denovo_dispatch() {
 	local request="$1"
 	local dispatch_id="$2"
 	local callback="$3"
-	local REPLY
-	local -i isok fd ready
-	zmodload zsh/net/socket
-	zsocket "$DENOVO_DENO_SOCK" >&/dev/null
-	isok=$?
-	((isok == 0)) || return 1
-	fd=$REPLY
-	echo -E "$request" >&$fd
+	local -i fd ready isok id
+
+	if (( _denovo_fd < 0 )); then
+		_denovo_connect
+		isok=$?
+		((isok == 0)) || return 1
+	fi
+
+	echo -E "$request" >&$_denovo_fd
 
 	if [[ -z "$dispatch_id" ]]; then
 		# no dispatch_id means we're not expecting a response
-		exec {fd}>&-
 		return
 	fi
 
 	if [[ -n "$callback" ]]; then
 		# callback means we're expecting a response, but we're not going to wait
-		__denovo_register_callback $fd "$callback"
+		__denovo_register_callback $dispatch_id "$callback"
 		return
 	fi
 
-	# no callback means we're expecting a response and we're going to wait
-	zmodload zsh/zselect
-	while zselect -r $_denovo_listen_fd -r $fd 2>>${DENOVO_ROOT}/zsh.log; do
-		ready_fd=${(s/ /)reply[2]}
-		if (( ready_fd == $fd )); then
-			cat <&$ready_fd
-			exec {fd}>&-
-			break
-		else
-			_denovo_accept $ready_fd
-		fi
-	done
+	_denovo_event_loop "$dispatch_id"
 }
 
 typeset -g -A _denovo_dispatch_callbacks
 function __denovo_register_callback() {
-	local fd=$1
+	local dispatch_id=$1
 	local callback=$2
-	_denovo_dispatch_callbacks[$fd]="$callback"
-	zle -F -w $fd __denovo_dispatch_callback
+	_denovo_dispatch_callbacks[$dispatch_id]="$callback"
 }
 
 function __denovo_dispatch_callback() {
-	local fd=$1
-	local callback=${_denovo_dispatch_callbacks[$fd]}
-	zle -F $fd
-	if [[ -n "$callback" ]]; then
-		eval "$callback" <&$fd
-	fi
-	exec {fd}>&-
+	local REPLY=$1
+	id=$(echo -E "$REPLY" | jq -r '.id')
+	echo -E "$REPLY" | eval "${_denovo_dispatch_callbacks[$id]}"
+	unset "_denovo_dispatch_callbacks[$id]"
 }
-zle -N __denovo_dispatch_callback
+
+function _denovo_event_loop() {
+	local dispatch_id="$1"
+
+	zmodload zsh/zselect
+	while zselect -r $_denovo_listen_fd -r $_denovo_fd 2>>${DENOVO_ROOT}/zsh.log; do
+		ready_fd=${(s/ /)reply[2]}
+
+		if (( ready_fd == $_denovo_listen_fd )); then
+			_denovo_accept $_denovo_listen_fd
+			continue
+		fi
+
+		read -u $_denovo_fd -r REPLY
+		id=$(echo -E "$REPLY" | jq -r '.id')
+
+		if (( id != dispatch_id )); then
+			# not the response we're looking for
+			__denovo_dispatch_callback "$REPLY"
+			continue
+		fi
+
+		echo -E "$REPLY"
+		return
+	done
+}
+

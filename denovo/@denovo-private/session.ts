@@ -93,8 +93,6 @@ export class Session {
             yield jsonrpc.ErrorInvalidRequest;
           }
         }
-        // we does not receive multiple request in one connection, so we can close connection after one request
-        return;
       }
     };
   }
