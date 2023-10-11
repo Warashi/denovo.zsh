@@ -26,10 +26,11 @@ export class HostImpl implements Host {
   #connectOptions: Deno.UnixConnectOptions;
 
   constructor(
-    listener: Deno.Listener,
+    w: WritableStream<Uint8Array>,
+    r: ReadableStream<Uint8Array>,
     opts: Deno.UnixConnectOptions,
   ) {
-    this.#session = new Session(listener);
+    this.#session = new Session(w, r);
     this.#connectOptions = opts;
   }
 
@@ -58,7 +59,7 @@ export class HostImpl implements Host {
     // noop
   }
 
-  async waitClosed(): Promise<void> {
-    await this.#session.start();
+  waitClosed(): Promise<void> {
+    return this.#session.process();
   }
 }
