@@ -18,7 +18,7 @@ export class Session {
    */
   async start(): Promise<void> {
     for await (const conn of this.#listener) {
-      this.accept(conn).catch((err) => {
+      this.accept(conn.writable, conn.readable).catch((err) => {
         if (err instanceof Deno.errors.BadResource) {
           // ignore BadResource because it occurs when the listener is closed
           return;
@@ -31,15 +31,18 @@ export class Session {
   /**
    * Accept connection
    */
-  async accept(conn: Deno.Conn): Promise<void> {
-    await conn.readable
+  async accept(
+    w: WritableStream<Uint8Array>,
+    r: ReadableStream<Uint8Array>,
+  ): Promise<void> {
+    await r
       .pipeThrough(new TextDecoderStream())
       .pipeThrough(new TextLineStream())
       .pipeThrough(new JsonParseStream())
       .pipeThrough(toTransformStream(this.transform()))
       .pipeThrough(new JsonStringifyStream())
       .pipeThrough(new TextEncoderStream())
-      .pipeTo(conn.writable);
+      .pipeTo(w);
   }
 
   /**
