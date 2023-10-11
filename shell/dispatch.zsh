@@ -94,7 +94,7 @@ function __denovo_register_callback() {
 
 function __denovo_dispatch_callback() {
 	local REPLY=$1
-	id=$(echo -E "$REPLY" | jq -r '.id')
+	id=$(echo -E "$REPLY" | _denovo_query_json 'id' | _denovo_unquote_json)
 	echo -E "$REPLY" | eval "${_denovo_dispatch_callbacks[$id]}"
 	unset "_denovo_dispatch_callbacks[$id]"
 }
@@ -112,7 +112,7 @@ function _denovo_event_loop() {
 		fi
 
 		read -u $_denovo_fd -r REPLY
-		id=$(echo -E "$REPLY" | jq -r '.id')
+		id=$(echo -E "$REPLY" | _denovo_query_json 'id' | _denovo_unquote_json)
 
 		if (( id != dispatch_id )); then
 			# not the response we're looking for

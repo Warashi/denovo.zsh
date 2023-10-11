@@ -1,6 +1,7 @@
 import { existsSync, path, toml, xdg, z } from "./deps.ts";
 
 export const DENOVO_DENO_SOCK = Deno.env.get("DENOVO_DENO_SOCK");
+export const DENOVO_DENO_JSON_SOCK = Deno.env.get("DENOVO_DENO_JSON_SOCK");
 export const DENOVO_ZSH_SOCK = Deno.env.get("DENOVO_ZSH_SOCK");
 export const DENOVO_APP_NAME = Deno.env.get("DENOVO_APP_NAME") ?? "denovo";
 export type Config = z.infer<typeof Config>;

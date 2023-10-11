@@ -1,11 +1,12 @@
 import { using } from "./deps.ts";
 import { HostImpl } from "./host.ts";
+import { JsonOperatorSession } from "./json.ts";
 import { Service } from "./service.ts";
 
 /**
  * Start the server.
  */
-export async function start(
+export function start(
   zshSocketPath: string,
   denoSocketPath: string,
 ): Promise<void> {
@@ -13,12 +14,27 @@ export async function start(
     transport: "unix",
     path: denoSocketPath,
   });
-  await using(
+  return using(
     new HostImpl(listener, { transport: "unix", path: zshSocketPath }),
-    async (host) => {
-      await using(new Service(host), async () => {
+    (host) => {
+      using(new Service(host), async () => {
         await host.waitClosed();
       });
+    },
+  );
+}
+
+export function startJsonServer(
+  socketPath: string,
+): Promise<void> {
+  const listener = Deno.listen({
+    transport: "unix",
+    path: socketPath,
+  });
+  return using(
+    new JsonOperatorSession(listener),
+    async (session) => {
+      await session.start();
     },
   );
 }
