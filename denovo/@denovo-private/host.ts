@@ -26,11 +26,11 @@ export class HostImpl implements Host {
   #connectOptions: Deno.UnixConnectOptions;
 
   constructor(
-    w: WritableStream<Uint8Array>,
-    r: ReadableStream<Uint8Array>,
+    reader: ReadableStream<Uint8Array>,
+    writer: WritableStream<Uint8Array>,
     opts: Deno.UnixConnectOptions,
   ) {
-    this.#session = new Session(w, r);
+    this.#session = new Session(reader, writer);
     this.#connectOptions = opts;
   }
 

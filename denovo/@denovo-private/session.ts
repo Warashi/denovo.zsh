@@ -4,16 +4,16 @@ import { TextLineStream, toTransformStream } from "./deps.ts";
 import { isNumber, isObject } from "./deps.ts";
 
 export class Session {
-  #writer: WritableStream<Uint8Array>;
   #reader: ReadableStream<Uint8Array>;
+  #writer: WritableStream<Uint8Array>;
   onMessage: (message: jsonrpc.Request) => Promise<unknown> = async () => {};
 
   constructor(
-    w: WritableStream<Uint8Array>,
-    r: ReadableStream<Uint8Array>,
+    reader: ReadableStream<Uint8Array>,
+    writer: WritableStream<Uint8Array>,
   ) {
-    this.#writer = w;
-    this.#reader = r;
+    this.#reader = reader;
+    this.#writer = writer;
   }
 
   /**
