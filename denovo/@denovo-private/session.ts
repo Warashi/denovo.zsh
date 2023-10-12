@@ -24,7 +24,9 @@ export class Session {
       .pipeThrough(new TextDecoderStream())
       .pipeThrough(new TextLineStream())
       .pipeThrough(new JsonParseStream())
-      .pipeThrough(toTransformStream(this.transform()))
+      .pipeThrough(
+        toTransformStream<JsonValue, jsonrpc.ResponseWithId>(this.transform()),
+      )
       .pipeThrough(new JsonStringifyStream())
       .pipeThrough(new TextEncoderStream())
       .pipeTo(this.#writer);
@@ -39,7 +41,6 @@ export class Session {
       if (!jsonrpc.isResponse(result)) {
         throw new Error("result is not Response");
       }
-      result.id = request.id;
       return result;
     } catch (e) {
       return jsonrpc.NewError({
@@ -71,15 +72,15 @@ export class Session {
         if (jsonrpc.isRequest(chunk)) {
           if (chunk.id == null) {
             session.notify(chunk);
-          } else {
-            yield await session.dispatch(chunk);
+            continue;
           }
-        } else {
-          if (is.Record(chunk) && is.Number(chunk.id)) {
-            yield { id: chunk.id, ...jsonrpc.ErrorInvalidRequest };
-          } else {
-            yield jsonrpc.ErrorInvalidRequest;
-          }
+          const response = await session.dispatch(chunk);
+          yield { id: chunk.id, ...response };
+          continue;
+        }
+        if (is.Record(chunk) && is.Number(chunk.id)) {
+          yield { id: chunk.id, ...jsonrpc.ErrorInvalidRequest };
+          continue;
         }
       }
     };
