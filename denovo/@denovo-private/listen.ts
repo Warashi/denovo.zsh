@@ -21,7 +21,7 @@ export async function start(
   });
   for await (const conn of listener) {
     using(
-      new HostImpl(conn.writable, conn.readable, evalOpts),
+      new HostImpl(conn.readable, conn.writable, evalOpts),
       (host) => {
         using(new Service(host), async () => {
           await host.waitClosed();

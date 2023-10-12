@@ -1,10 +1,4 @@
-import {
-  assertObject,
-  assertString,
-  ensureString,
-  isObject,
-  isString,
-} from "../deps.ts";
+import { assert, ensure, is } from "../deps.ts";
 import { Client, Session } from "../deps.ts";
 import { readableStreamFromWorker, writableStreamFromWorker } from "../deps.ts";
 import { Denovo, Meta } from "../../@denovo/mod.ts";
@@ -61,7 +55,7 @@ async function main(
         return client.call(method, ...params);
       },
       async eval(expr: string): Promise<string> {
-        return ensureString(await client.call("eval", expr));
+        return ensure(await client.call("eval", expr), is.String);
       },
     },
   );
@@ -77,35 +71,25 @@ async function main(
   self.close();
 }
 
-function isMeta(v: unknown): v is Meta {
-  if (!isObject(v)) {
-    return false;
-  }
-  if (!isString(v.mode) || !["release", "debug", "test"].includes(v.mode)) {
-    return false;
-  }
-  if (!isString(v.version)) {
-    return false;
-  }
-  if (
-    !isString(v.platform) || !["windows", "mac", "linux"].includes(v.platform)
-  ) {
-    return false;
-  }
-  return true;
-}
+const isValidRegisterEvent = is.ObjectOf({
+  data: is.ObjectOf({
+    scriptUrl: is.String,
+    directory: is.String,
+    meta: is.ObjectOf({
+      mode: is.LiteralOneOf(["release", "debug", "test"] as const),
+      version: is.String,
+      platform: is.LiteralOneOf(["windows", "mac", "linux"] as const),
+    }),
+    config: is.Any,
+  }),
+});
 
 // Patch console with worker name for easy debugging
 patchConsole(`(${worker.name})`);
 
 // Wait startup arguments and start 'main'
 worker.addEventListener("message", (event: MessageEvent<unknown>) => {
-  assertObject(event.data);
-  assertString(event.data.scriptUrl);
-  assertString(event.data.directory);
-  if (!isMeta(event.data.meta)) {
-    throw new Error(`Invalid 'meta' is passed: ${event.data.meta}`);
-  }
+  assert(event, isValidRegisterEvent);
   const { scriptUrl, directory, meta, config } = event.data;
   main(scriptUrl, directory, meta, config).catch((e) => {
     console.error(
