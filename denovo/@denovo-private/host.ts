@@ -1,6 +1,6 @@
 import { Invoker, isInvokerMethod } from "./invoker.ts";
 import { Session } from "./session.ts";
-import { NewError, NewSuccess, Response } from "./jsonrpc/mod.ts";
+import { NewError, Response } from "./jsonrpc/mod.ts";
 import { Disposable } from "./deps.ts";
 import { evalZsh } from "./eval.ts";
 
@@ -38,8 +38,8 @@ export class HostImpl implements Host {
     return evalZsh(expr, this.#connectOptions);
   }
 
-  register(invoker: Invoker): Response {
-    this.#session.onMessage = async (message) => {
+  register(invoker: Invoker): void {
+    this.#session.onMessage = async (message): Promise<Response> => {
       const { method, params } = message;
       if (!isInvokerMethod(method)) {
         return NewError({
@@ -52,7 +52,6 @@ export class HostImpl implements Host {
       // deno-lint-ignore no-explicit-any
       return await (invoker[method] as any)(...params);
     };
-    return NewSuccess({});
   }
 
   dispose(): void {
