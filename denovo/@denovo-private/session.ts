@@ -1,7 +1,7 @@
 import { JsonParseStream, JsonStringifyStream, JsonValue } from "./deps.ts";
 import * as jsonrpc from "./jsonrpc/mod.ts";
 import { TextLineStream, toTransformStream } from "./deps.ts";
-import { isNumber, isObject } from "./deps.ts";
+import { is } from "./deps.ts";
 
 export class Session {
   #reader: ReadableStream<Uint8Array>;
@@ -75,7 +75,7 @@ export class Session {
             yield await session.dispatch(chunk);
           }
         } else {
-          if (isObject(chunk) && isNumber(chunk.id)) {
+          if (is.Record(chunk) && is.Number(chunk.id)) {
             yield { id: chunk.id, ...jsonrpc.ErrorInvalidRequest };
           } else {
             yield jsonrpc.ErrorInvalidRequest;

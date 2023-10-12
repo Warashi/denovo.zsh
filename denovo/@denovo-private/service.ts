@@ -1,5 +1,5 @@
 import { path } from "./deps.ts";
-import { assertArray, assertString } from "./deps.ts";
+import { assert, is } from "./deps.ts";
 import { Client, Session } from "./deps.ts";
 import { readableStreamFromWorker, writableStreamFromWorker } from "./deps.ts";
 import { Disposable } from "./deps.ts";
@@ -215,14 +215,14 @@ function buildServiceSession(
     },
 
     dispatch: async (name, fn, ...args) => {
-      assertString(name);
-      assertString(fn);
-      assertArray(args);
+      assert(name, is.String);
+      assert(fn, is.String);
+      assert(args, is.Array);
       return await service.dispatch(name, fn, args);
     },
 
     eval: async (expr) => {
-      assertString(expr);
+      assert(expr, is.String);
       return await service.host.eval(expr);
     },
   };
