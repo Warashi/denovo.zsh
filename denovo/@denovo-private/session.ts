@@ -24,7 +24,9 @@ export class Session {
       .pipeThrough(new TextDecoderStream())
       .pipeThrough(new TextLineStream())
       .pipeThrough(new JsonParseStream())
-      .pipeThrough(toTransformStream(this.transform()))
+      .pipeThrough(
+        toTransformStream<JsonValue, jsonrpc.ResponseWithId>(this.transform),
+      )
       .pipeThrough(new JsonStringifyStream())
       .pipeThrough(new TextEncoderStream())
       .pipeTo(this.#writer);
@@ -39,7 +41,6 @@ export class Session {
       if (!jsonrpc.isResponse(result)) {
         throw new Error("result is not Response");
       }
-      result.id = request.id;
       return result;
     } catch (e) {
       return jsonrpc.NewError({
@@ -62,26 +63,18 @@ export class Session {
   /**
    * Transform stream
    */
-  transform() {
-    // `this` points to generator in generator function, so we need to alias it
-    // deno-lint-ignore no-this-alias
-    const session = this;
-    return async function* (src: ReadableStream<JsonValue>) {
-      for await (const chunk of src) {
-        if (jsonrpc.isRequest(chunk)) {
-          if (chunk.id == null) {
-            session.notify(chunk);
-          } else {
-            yield await session.dispatch(chunk);
-          }
+  async *transform(
+    src: ReadableStream<JsonValue>,
+  ): AsyncGenerator<jsonrpc.ResponseWithId, void, void> {
+    for await (const chunk of src) {
+      if (jsonrpc.isRequest(chunk)) {
+        if (is.Undefined(chunk.id)) {
+          this.notify(chunk);
         } else {
-          if (is.Record(chunk) && is.Number(chunk.id)) {
-            yield { id: chunk.id, ...jsonrpc.ErrorInvalidRequest };
-          } else {
-            yield jsonrpc.ErrorInvalidRequest;
-          }
+          const response = await this.dispatch(chunk);
+          yield { id: chunk.id, ...response };
         }
       }
-    };
+    }
   }
 }
