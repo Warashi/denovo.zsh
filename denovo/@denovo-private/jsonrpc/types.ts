@@ -1,34 +1,48 @@
-import { is } from "../deps.ts";
-import type { PredicateType } from "../deps.ts";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
-export type ResponseWithId = Response & { id: number };
-export type Request = PredicateType<typeof isRequest>;
-export type Response = PredicateType<typeof isResponse>;
-export type Success = PredicateType<typeof isSuccess>;
-export type Error = PredicateType<typeof isError>;
+export type Request = z.infer<typeof Request>;
+export type Response = Success | Error;
+export type Success = z.infer<typeof Success>;
+export type Error = z.infer<typeof Error>;
 
-export const isRequest = is.ObjectOf({
-  jsonrpc: is.LiteralOf("2.0"),
-  id: is.OptionalOf(is.Number),
-  method: is.String,
-  params: is.Array,
+const Request = z.object({
+  jsonrpc: z.enum(["2.0"]),
+  id: z.number().optional(),
+  method: z.string(),
+  params: z.array(z.unknown()),
 });
 
-export const isSuccess = is.ObjectOf({
-  jsonrpc: is.LiteralOf("2.0"),
-  result: is.OptionalOf(is.Any),
+const Success = z.object({
+  jsonrpc: z.enum(["2.0"]),
+  id: z.number().optional(),
+  result: z.unknown().optional(),
 });
 
-export const isError = is.ObjectOf({
-  jsonrpc: is.LiteralOf("2.0"),
-  error: is.ObjectOf({
-    code: is.Number,
-    message: is.String,
-    data: is.OptionalOf(is.Any),
+const Error = z.object({
+  jsonrpc: z.enum(["2.0"]),
+  id: z.number().optional(),
+  error: z.object({
+    code: z.number(),
+    message: z.string(),
+    data: z.unknown().optional(),
   }),
 });
 
-export const isResponse = is.OneOf([isSuccess, isError]);
+export function isRequest(x: unknown): x is Request {
+  return Request.safeParse(x).success;
+}
+
+export function isResponse(x: unknown): x is Response {
+  return isSuccess(x) || isError(x);
+}
+
+export function isSuccess(x: unknown): x is Success {
+  return Success.safeParse(x).success;
+}
+
+export function isError(x: unknown): x is Error {
+  return Error.safeParse(x).success;
+}
 
 export function NewRequest(args: {
   id?: number;
@@ -39,12 +53,14 @@ export function NewRequest(args: {
 }
 
 export function NewSuccess(args: {
+  id?: number;
   result?: unknown;
 }): Success {
   return { jsonrpc: "2.0", ...args };
 }
 
 export function NewError(args: {
+  id?: number;
   error: {
     code: number;
     message: string;

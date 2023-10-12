@@ -15,5 +15,6 @@ export {
   readableStreamFromWorker,
   writableStreamFromWorker,
 } from "https://deno.land/x/workerio@v3.1.0/mod.ts";
+export { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import xdg from "https://deno.land/x/xdg@v10.6.0/src/mod.deno.ts";
 export { xdg };
