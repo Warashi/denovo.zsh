@@ -15,6 +15,7 @@ fi
 typeset -gaU DENOVO_PATH
 DENOVO_PATH+=("${DENOVO_ROOT}")
 
+source "${DENOVO_ROOT}/shell/jo.zsh"
 source "${DENOVO_ROOT}/shell/json.zsh"
 source "${DENOVO_ROOT}/shell/listen.zsh"
 source "${DENOVO_ROOT}/shell/dispatch.zsh"

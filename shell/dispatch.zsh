@@ -1,17 +1,17 @@
 # denovo-dispatch name method ...params
 function denovo-dispatch() {
-	_denovo_dispatch dispatch "$(_denovo_json_string_array $@)"
+	_denovo_dispatch '' dispatch "$@"
 }
 
 # denovo-notify name method ...params
 function denovo-notify() {
-	_denovo_notify dispatch "$(_denovo_json_string_array $@)"
+	_denovo_notify '' dispatch "$@"
 }
 
 # denovo-dispatch-async callback name method ...params
 function denovo-dispatch-async() {
-	local callback="$1"; shift;
-	_denovo_dispatch dispatch "$(_denovo_json_string_array $@)" "$callback"
+	local callback="$1"; builtin shift;
+	_denovo_dispatch "$callback" dispatch "$@"
 }
 
 typeset -g -i _denovo_fd=-1
@@ -35,25 +35,18 @@ function _denovo_accept_result() {
 zle -N _denovo_accept_result
 
 function _denovo_notify() {
-	local method="$1"
-	local params="$2"
-	if [[ -z "$params" ]]; then
-		params='[]'
-	fi
-	local request="$(_denovo_request "$method" "$params")"
+	local callback="$1"; builtin shift;
+	local method="$1"; builtin shift;
+	local request="$(_denovo_request '' "$method" $@)"
 	__denovo_dispatch "$request"
 }
 
 typeset -g -i _denovo_dispatch_id=0
 function _denovo_dispatch() {
 	local dispatch_id=$(( ++_denovo_dispatch_id ))
-	local method="$1"
-	local params="$2"
-	local callback="$3"
-	if [[ -z "$params" ]]; then
-		params='[]'
-	fi
-	local request="$(_denovo_request "$method" "$params" $dispatch_id)"
+	local callback="$1"; builtin shift;
+	local method="$1"; builtin shift;
+	local request="$(_denovo_request "$dispatch_id" "$method" $@)"
 	__denovo_dispatch "$request" $dispatch_id "$callback"
 }
 
