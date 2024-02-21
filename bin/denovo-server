@@ -1,7 +1,6 @@
 #!/usr/bin/env zsh
 
 exec deno run \
-  --unstable \
   --no-prompt \
   --allow-env \
   --allow-net \
