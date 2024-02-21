@@ -1,12 +1,12 @@
-export * as path from "https://deno.land/std@0.203.0/path/mod.ts";
-export * as toml from "https://deno.land/std@0.203.0/toml/mod.ts";
-export * from "https://deno.land/std@0.203.0/fmt/printf.ts";
-export * from "https://deno.land/std@0.203.0/fs/exists.ts";
-export * from "https://deno.land/std@0.203.0/json/mod.ts";
-export * from "https://deno.land/std@0.203.0/streams/mod.ts";
-export * from "https://deno.land/std@0.203.0/streams/read_all.ts";
+export * as path from "https://deno.land/std@0.216.0/path/mod.ts";
+export * as toml from "https://deno.land/std@0.216.0/toml/mod.ts";
+export * from "https://deno.land/std@0.216.0/fmt/printf.ts";
+export * from "https://deno.land/std@0.216.0/fs/exists.ts";
+export * from "https://deno.land/std@0.216.0/json/mod.ts";
+export * from "https://deno.land/std@0.216.0/streams/mod.ts";
+export * from "https://deno.land/std@0.216.0/streams/to_array_buffer.ts";
 export * from "https://deno.land/x/disposable@v1.2.0/mod.ts";
-export * from "https://deno.land/x/unknownutil@v3.9.0/mod.ts";
+export * from "https://deno.land/x/unknownutil@v3.16.3/mod.ts";
 export {
   Client,
   Session,
