@@ -96,7 +96,7 @@ function _denovo_event_loop() {
 	local dispatch_id="$1"
 
 	zmodload zsh/zselect
-	while zselect -r $_denovo_listen_fd -r $_denovo_fd 2>>${DENOVO_ROOT}/zsh.log; do
+	while zselect -r $_denovo_listen_fd -r $_denovo_fd &> /dev/null; do
 		ready_fd=${(s/ /)reply[2]}
 
 		if (( ready_fd == $_denovo_listen_fd )); then
