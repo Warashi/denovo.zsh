@@ -10,7 +10,7 @@ export DENOVO_ROOT DENOVO_SOCK_DIR DENOVO_DENO_SOCK DENOVO_DENO_JSON_SOCK DENOVO
 if [[ ! -d ${DENOVO_SOCK_DIR} ]]; then
 	mkdir -p "${DENOVO_SOCK_DIR}"
 fi
-"${DENOVO_SERVER_BIN:-${DENOVO_ROOT}/bin/denovo-server}" >>"${DENOVO_ROOT}/denovo.log" 2>&1 &!
+"${DENOVO_SERVER_BIN:-${DENOVO_ROOT}/bin/denovo-server}" &> /dev/null &!
 
 typeset -gaU DENOVO_PATH
 DENOVO_PATH+=("${DENOVO_ROOT}")
