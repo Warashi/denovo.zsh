@@ -20,7 +20,7 @@
         settings = {
           src = ../../.;
           hooks = {
-            actionlint.enable = false;
+            actionlint.enable = true;
             treefmt.enable = true;
           };
         };
@@ -45,7 +45,10 @@
               command = "sh";
               options = [
                 "-c"
-                ''${altshfmt}/bin/altshfmt -l "$@" | xargs ${altshfmt}/bin/altshfmt -w''
+                ''
+                  ${altshfmt}/bin/altshfmt -l "$@" | xargs --no-run-if-empty ${altshfmt}/bin/altshfmt -w
+                ''
+                "--"
               ];
               includes = [ "*.sh" ];
             };
