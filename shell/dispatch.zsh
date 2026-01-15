@@ -4,9 +4,9 @@ function denovo-dispatch() {
 	builtin shift
 	local method="$1"
 	builtin shift
-	local args="$@"
+	local -a args=("$@")
 
-	_denovo_dispatch '' "$plugin" "$method" "$args[@]"
+	_denovo_dispatch '' "$plugin" "$method" "${args[@]}"
 }
 
 # denovo-notify plugin method ...params
@@ -15,9 +15,9 @@ function denovo-notify() {
 	builtin shift
 	local method="$1"
 	builtin shift
-	local args="$@"
+	local -a args=("$@")
 
-	_denovo_notify '' "$plugin" "$method" "$args[@]"
+	_denovo_notify '' "$plugin" "$method" "${args[@]}"
 }
 
 # denovo-dispatch-async callback plugin method ...params
@@ -28,9 +28,9 @@ function denovo-dispatch-async() {
 	builtin shift
 	local method="$1"
 	builtin shift
-	local args="$@"
+	local -a args=("$@")
 
-	_denovo_dispatch "$callback" "$plugin" "$method" "$args[@]"
+	_denovo_dispatch "$callback" "$plugin" "$method" "${args[@]}"
 }
 
 function _denovo_dispatch_request() {
@@ -68,10 +68,10 @@ function _denovo_notify() {
 	builtin shift
 	local method="$1"
 	builtin shift
-	local args="$@"
+	local -a args=("$@")
 
 	local request
-	_denovo_dispatch_request request '' "$plugin" "$method" "$args[@]"
+	_denovo_dispatch_request request '' "$plugin" "$method" "${args[@]}"
 	__denovo_dispatch "$request"
 }
 
@@ -84,10 +84,10 @@ function _denovo_dispatch() {
 	builtin shift
 	local method="$1"
 	builtin shift
-	local args="$@"
+	local -a args=("$@")
 
 	local request
-	_denovo_dispatch_request request "$dispatch_id" "$plugin" "$method" "$args[@]"
+	_denovo_dispatch_request request "$dispatch_id" "$plugin" "$method" "${args[@]}"
 	__denovo_dispatch "$request" $dispatch_id "$callback"
 }
 
