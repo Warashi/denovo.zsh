@@ -61,32 +61,10 @@
           packages =
             with pkgs;
             let
-              tree-sitter' = tree-sitter.overrideAttrs (
-                finalAttrs: previousAttrs: rec {
-                  version = "0.26.3";
-                  src = fetchFromGitHub {
-                    owner = "tree-sitter";
-                    repo = "tree-sitter";
-                    rev = "v${version}";
-                    hash = "sha256-G1C5IhRIVcWUwEI45ELxCKfbZnsJoqan7foSzPP3mMg=";
-                  };
-                  cargoDeps = rustPlatform.fetchCargoVendor {
-                    inherit (finalAttrs) pname src version;
-                    hash = "sha256-kHYLaiCHyKG+DL+T2s8yumNHFfndrB5aWs7ept0X4CM=";
-                  };
-                  nativeBuildInputs = previousAttrs.nativeBuildInputs ++ [
-                    rustPlatform.bindgenHook
-                    pkg-config
-                  ];
-                  buildInputs = previousAttrs.buildInputs ++ [
-                    openssl
-                  ];
-                  patches = [ ];
-                }
-              );
+              altshfmt = pkgs.callPackage ../altshfmt { };
             in
             [
-              tree-sitter'
+              altshfmt
               shellspec
               zsh
             ]
