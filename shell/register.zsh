@@ -13,17 +13,3 @@ function denovo-load() {
 
 	__denovo_dispatch "$request"
 }
-
-function _denovo_discover() {
-	for directory in $DENOVO_PATH; do
-		for s in $directory/denovo/*/main.ts; do
-			local script=$s
-			local plugin=${script:h:t}
-			if [[ $plugin == @* ]]; then
-				# ignore if plugin name starts with @ as special case
-				continue
-			fi
-			denovo-load "$plugin" "$script"
-		done
-	done
-}
