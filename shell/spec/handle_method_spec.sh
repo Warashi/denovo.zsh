@@ -5,6 +5,16 @@ Describe '_denovo_handle_method'
 	Include ./handle_method.zsh
 	Include ./capture_command.zsh
 
+	DENOVO_TMPDIR="${TMPDIR:-/tmp}/denovo.$$"
+	setup() {
+		mkdir -p "${DENOVO_TMPDIR}"
+	}
+	cleanup() {
+		rm -rf "${DENOVO_TMPDIR}"
+	}
+	BeforeEach 'setup'
+	AfterEach 'cleanup'
+
 	Describe 'call_function'
 		It 'evaluates the code and do not sends response'
 			When call _denovo_handle_method 1 '{"jsonrpc":"2.0","method":"call_function","params":["eval","echo"]}'
