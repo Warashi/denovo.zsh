@@ -1,32 +1,45 @@
 #!/usr/bin/env zsh
 
-: ${DENOVO_ROOT:=${0:a:h}}
-: ${DENOVO_SOCK_DIR:="${XDG_RUNTIME_DIR:-${TMPDIR:-/tmp}}/denovo-${UID}"}
-: ${DENOVO_DENO_SOCK::="${DENOVO_SOCK_DIR}/denovo-${$}.deno.sock"}
-: ${DENOVO_DENO_JSON_SOCK::="${DENOVO_SOCK_DIR}/denovo-${$}.deno.json.sock"}
-: ${DENOVO_ZSH_SOCK::="${DENOVO_SOCK_DIR}/denovo-${$}.zsh.sock"}
-export DENOVO_ROOT DENOVO_SOCK_DIR DENOVO_DENO_SOCK DENOVO_DENO_JSON_SOCK DENOVO_ZSH_SOCK
-
-if [[ ! -d ${DENOVO_SOCK_DIR} ]]; then
-	mkdir -p "${DENOVO_SOCK_DIR}"
+if [[ -z ${DENOVO_ROOT} ]]; then
+	DENOVO_ROOT=${0:a:h}
 fi
-"${DENOVO_SERVER_BIN:-${DENOVO_ROOT}/bin/denovo-server}" &> /dev/null &!
+export DENOVO_ROOT
 
-typeset -gaU DENOVO_PATH
-DENOVO_PATH+=("${DENOVO_ROOT}")
+if [[ -z ${DENOVO_TMPDIR} ]]; then
+	DENOVO_TMPDIR="${TMPDIR:-/tmp}/denovo.$$"
+fi
+export DENOVO_TMPDIR
+mkdir -p "${DENOVO_TMPDIR}"
 
-source "${DENOVO_ROOT}/shell/jo.zsh"
-source "${DENOVO_ROOT}/shell/json.zsh"
-source "${DENOVO_ROOT}/shell/listen.zsh"
+coproc "${DENOVO_SERVER_BIN:-${DENOVO_ROOT}/bin/denovo-server}"
+_DENOVO_DENO_PID=$!
+exec 3>&p 4<&p
+disown
+
+DENOVO_DENO_COPROC_STDIN=3
+DENOVO_DENO_COPROC_STDOUT=4
+
+source "${DENOVO_ROOT}/shell/callback.zsh"
+source "${DENOVO_ROOT}/shell/capture_command.zsh"
 source "${DENOVO_ROOT}/shell/dispatch.zsh"
+source "${DENOVO_ROOT}/shell/event_loop.zsh"
+source "${DENOVO_ROOT}/shell/handle_method.zsh"
+source "${DENOVO_ROOT}/shell/jo.zsh"
+source "${DENOVO_ROOT}/shell/jsonrpc2.zsh"
+source "${DENOVO_ROOT}/shell/meta.zsh"
+source "${DENOVO_ROOT}/shell/query.zsh"
 source "${DENOVO_ROOT}/shell/register.zsh"
+source "${DENOVO_ROOT}/shell/unquote.zsh"
 
-function denovo-stop-server() {
-	if [[ -n "$_DENOVO_DENO_PID" ]]; then
+function denovo-cleanup() {
+	if [[ -n $_DENOVO_DENO_PID ]]; then
 		kill "$_DENOVO_DENO_PID"
 	fi
-	rm -f "$DENOVO_ZSH_SOCK"
+	_denovo_disable_event_pump >/dev/null 2>&1
+	rm -rf "${DENOVO_TMPDIR}"
 }
 
 autoload -Uz add-zsh-hook
-add-zsh-hook zshexit denovo-stop-server
+add-zsh-hook zshexit denovo-cleanup
+
+_denovo_enable_event_pump >/dev/null 2>&1

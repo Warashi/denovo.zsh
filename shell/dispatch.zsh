@@ -1,52 +1,93 @@
-# denovo-dispatch name method ...params
+# denovo-dispatch plugin method ...params
 function denovo-dispatch() {
-	_denovo_dispatch '' dispatch "$@"
+	local plugin="$1"
+	builtin shift
+	local method="$1"
+	builtin shift
+	local args="$@"
+
+	_denovo_dispatch '' "$plugin" "$method" "$args[@]"
 }
 
-# denovo-notify name method ...params
+# denovo-notify plugin method ...params
 function denovo-notify() {
-	_denovo_notify '' dispatch "$@"
+	local plugin="$1"
+	builtin shift
+	local method="$1"
+	builtin shift
+	local args="$@"
+
+	_denovo_notify '' "$plugin" "$method" "$args[@]"
 }
 
-# denovo-dispatch-async callback name method ...params
+# denovo-dispatch-async callback plugin method ...params
 function denovo-dispatch-async() {
-	local callback="$1"; builtin shift;
-	_denovo_dispatch "$callback" dispatch "$@"
+	local callback="$1"
+	builtin shift
+	local plugin="$1"
+	builtin shift
+	local method="$1"
+	builtin shift
+	local args="$@"
+
+	_denovo_dispatch "$callback" "$plugin" "$method" "$args[@]"
 }
 
-typeset -g -i _denovo_fd=-1
-function _denovo_connect() {
-	local REPLY
-	local -i isok
-	zmodload zsh/net/socket
-	zsocket "$DENOVO_DENO_SOCK" >&/dev/null
-	isok=$?
-	((isok == 0)) || return 1
-	_denovo_fd=$REPLY
-	zle -F -w $_denovo_fd _denovo_accept_result
-}
+function _denovo_dispatch_request() {
+	local reply_var="$1"
+	builtin shift
+	local id="$1"
+	builtin shift
+	local plugin="$1"
+	builtin shift
+	local method="$1"
+	builtin shift
 
-function _denovo_accept_result() {
-	local REPLY
+	local args='[]'
+	_denovo_jo -v args -a "$@"
 
-	read -u $1 -r REPLY
-	__denovo_dispatch_callback "$REPLY"
+	local dispatch_args
+	_denovo_jo -v dispatch_args -a "$plugin" "$method" "$args"
+
+	local params
+	_denovo_jo -v params -a "dispatch" "$dispatch_args"
+
+	local request_json
+	if [[ -n $id ]]; then
+		_denovo_jo -v request_json -s jsonrpc="2.0" -n id="$id" -s method="invoke" params="$params"
+	else
+		_denovo_jo -v request_json -s jsonrpc="2.0" -s method="invoke" params="$params"
+	fi
+	builtin print -r -n -v "$reply_var" -- "$request_json"
 }
-zle -N _denovo_accept_result
 
 function _denovo_notify() {
-	local callback="$1"; builtin shift;
-	local method="$1"; builtin shift;
-	local request="$(_denovo_request '' "$method" $@)"
+	local callback="$1"
+	builtin shift
+	local plugin="$1"
+	builtin shift
+	local method="$1"
+	builtin shift
+	local args="$@"
+
+	local request
+	_denovo_dispatch_request request '' "$plugin" "$method" "$args[@]"
 	__denovo_dispatch "$request"
 }
 
 typeset -g -i _denovo_dispatch_id=0
 function _denovo_dispatch() {
-	local dispatch_id=$(( ++_denovo_dispatch_id ))
-	local callback="$1"; builtin shift;
-	local method="$1"; builtin shift;
-	local request="$(_denovo_request "$dispatch_id" "$method" $@)"
+	local dispatch_id=$((++_denovo_dispatch_id))
+	local callback="$1"
+	builtin shift
+	local plugin="$1"
+	builtin shift
+	local method="$1"
+	builtin shift
+	local args="$@"
+
+	local request
+	_denovo_dispatch_request request "$dispatch_id" "$plugin" "$method" "$args[@]"
 	__denovo_dispatch "$request" $dispatch_id "$callback"
 }
 
@@ -54,22 +95,15 @@ function __denovo_dispatch() {
 	local request="$1"
 	local dispatch_id="$2"
 	local callback="$3"
-	local -i fd ready isok id
 
-	if (( _denovo_fd < 0 )); then
-		_denovo_connect
-		isok=$?
-		((isok == 0)) || return 1
-	fi
+	echo -E "$request" >&${DENOVO_DENO_COPROC_STDIN}
 
-	echo -E "$request" >&$_denovo_fd
-
-	if [[ -z "$dispatch_id" ]]; then
+	if [[ -z $dispatch_id ]]; then
 		# no dispatch_id means we're not expecting a response
 		return
 	fi
 
-	if [[ -n "$callback" ]]; then
+	if [[ -n $callback ]]; then
 		# callback means we're expecting a response, but we're not going to wait
 		__denovo_register_callback $dispatch_id "$callback"
 		return
@@ -77,44 +111,3 @@ function __denovo_dispatch() {
 
 	_denovo_event_loop "$dispatch_id"
 }
-
-typeset -g -A _denovo_dispatch_callbacks
-function __denovo_register_callback() {
-	local dispatch_id=$1
-	local callback=$2
-	_denovo_dispatch_callbacks[$dispatch_id]="$callback"
-}
-
-function __denovo_dispatch_callback() {
-	local REPLY=$1
-	id=$(echo -E "$REPLY" | _denovo_query_json 'id' | _denovo_unquote_json)
-	echo -E "$REPLY" | eval "${_denovo_dispatch_callbacks[$id]}"
-	unset "_denovo_dispatch_callbacks[$id]"
-}
-
-function _denovo_event_loop() {
-	local dispatch_id="$1"
-
-	zmodload zsh/zselect
-	while zselect -r $_denovo_listen_fd -r $_denovo_fd &> /dev/null; do
-		ready_fd=${(s/ /)reply[2]}
-
-		if (( ready_fd == $_denovo_listen_fd )); then
-			_denovo_accept $_denovo_listen_fd
-			continue
-		fi
-
-		read -u $_denovo_fd -r REPLY
-		id=$(echo -E "$REPLY" | _denovo_query_json 'id' | _denovo_unquote_json)
-
-		if (( id != dispatch_id )); then
-			# not the response we're looking for
-			__denovo_dispatch_callback "$REPLY"
-			continue
-		fi
-
-		echo -E "$REPLY"
-		return
-	done
-}
-

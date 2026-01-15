@@ -1,2 +1,5 @@
 /*.log
 *.zwc
+/.pre-commit-config.yaml
+deno.lock
+.coverage

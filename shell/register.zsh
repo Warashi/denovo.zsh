@@ -1,41 +1,29 @@
-function denovo-register() {
-	local plugin=$1
-	local directory=$2
-	local script=$3
-	local meta="$(_denovo_meta)"
-	_denovo_notify '' "register" "$plugin" "$directory" "$script" "$meta" >/dev/null
-}
+function denovo-load() {
+	local plugin="$1"
+	builtin shift
+	local script="$1"
+	builtin shift
 
-function _denovo_meta() {
-	_denovo_jo -s mode=release -s version="$ZSH_VERSION" -s platform="$(_denovo_host_platform)"
-}
+	local args
+	_denovo_jo -v args -a "$plugin" "$script"
+	local params
+	_denovo_jo -v params -a "load" "$args"
+	local request
+	_denovo_jo -v "request" -s jsonrpc="2.0" -s method="invoke" params="$params"
 
-function _denovo_host_platform() {
-	if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-		echo "linux"
-	elif [[ "$OSTYPE" == "darwin"* ]]; then
-		echo "mac"
-	elif [[ "$OSTYPE" == "cygwin" ]]; then
-		echo "windows"
-	elif [[ "$OSTYPE" == "msys" ]]; then
-		echo "windows"
-	elif [[ "$OSTYPE" == "win32" ]]; then
-		echo "windows"
-	else
-		echo "unknown"
-	fi
+	__denovo_dispatch "$request"
 }
 
 function _denovo_discover() {
 	for directory in $DENOVO_PATH; do
 		for s in $directory/denovo/*/main.ts; do
 			local script=$s
-			local plugin=$(basename $(dirname $script))
-			if [[ $plugin = @* ]]; then
+			local plugin=${script:h:t}
+			if [[ $plugin == @* ]]; then
 				# ignore if plugin name starts with @ as special case
 				continue
 			fi
-			denovo-register $plugin $directory $script
+			denovo-load "$plugin" "$script"
 		done
 	done
 }
