@@ -16,9 +16,7 @@ export class Zsh implements Host {
     reader: ReadableStream<Uint8Array>,
     writer: WritableStream<Uint8Array>,
   ) {
-    const [a, b] = reader.tee();
-    a.pipeTo(Deno.stderr.writable);
-    this.#session = new Session(b, writer);
+    this.#session = new Session(reader, writer);
 
     this.#session.dispatcher = {
       void() {
