@@ -17,7 +17,7 @@ github = "Warashi/denovo-example"
 ```
 
 Then you can confirm if denovo is working properly by executing
-`denovo-dispatch denovo-example echo a b c` command like:
+`denovo-dispatch example echo a b c` command like:
 
 ```sh
 $ denovo-dispatch example echo a b c
