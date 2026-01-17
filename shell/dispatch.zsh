@@ -46,7 +46,11 @@ function _denovo_dispatch_request() {
 	local -a arg_items=()
 	local item
 	for item in "$@"; do
-		arg_items+=("-s" "$item")
+		if [[ -z $item ]]; then
+			arg_items+=("-s" "$item")
+		else
+			arg_items+=("$item")
+		fi
 	done
 	local args='[]'
 	_denovo_jo -v args -a "${arg_items[@]}"
