@@ -8,7 +8,6 @@ export DENOVO_ROOT
 if [[ -z ${DENOVO_TMPDIR} ]]; then
 	DENOVO_TMPDIR="${TMPDIR:-/tmp}/denovo.$$"
 fi
-export DENOVO_TMPDIR
 mkdir -p "${DENOVO_TMPDIR}"
 
 typeset -gaU DENOVO_PATH
