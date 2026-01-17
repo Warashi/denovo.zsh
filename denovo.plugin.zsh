@@ -13,7 +13,7 @@ mkdir -p "${DENOVO_TMPDIR}"
 typeset -gaU DENOVO_PATH
 DENOVO_PATH+=("${DENOVO_ROOT}")
 
-coproc "${DENOVO_SERVER_BIN:-${DENOVO_ROOT}/bin/denovo-server}"
+coproc "${DENOVO_SERVER_BIN:-${DENOVO_ROOT}/bin/denovo-server}" 2> >(logger -t denovo-server -p user.error)
 _DENOVO_DENO_PID=$!
 exec 3>&p 4<&p
 disown
@@ -28,6 +28,7 @@ source "${DENOVO_ROOT}/shell/event_loop.zsh"
 source "${DENOVO_ROOT}/shell/handle_method.zsh"
 source "${DENOVO_ROOT}/shell/jo.zsh"
 source "${DENOVO_ROOT}/shell/jsonrpc2.zsh"
+source "${DENOVO_ROOT}/shell/logger.zsh"
 source "${DENOVO_ROOT}/shell/meta.zsh"
 source "${DENOVO_ROOT}/shell/query.zsh"
 source "${DENOVO_ROOT}/shell/register.zsh"
