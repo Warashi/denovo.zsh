@@ -11,6 +11,9 @@ fi
 export DENOVO_TMPDIR
 mkdir -p "${DENOVO_TMPDIR}"
 
+typeset -gaU DENOVO_PATH
+DENOVO_PATH+=("${DENOVO_ROOT}")
+
 coproc "${DENOVO_SERVER_BIN:-${DENOVO_ROOT}/bin/denovo-server}"
 _DENOVO_DENO_PID=$!
 exec 3>&p 4<&p

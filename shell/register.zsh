@@ -13,3 +13,7 @@ function denovo-load() {
 
 	__denovo_dispatch "$request"
 }
+
+function _denovo_path() {
+	printf '%s\0' "${DENOVO_PATH[@]}"
+}

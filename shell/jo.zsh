@@ -6,8 +6,9 @@ function _denovo_jo_string() {
 	str="${str//$'\n'/\\n}"
 	str="${str//$'\r'/\\r}"
 	str="${str//\"/\\\"}"
-	str=${str//$'\b'/\\b}
-	str=${str//$'\f'/\\f}
+	str="${str//$'\b'/\\b}"
+	str="${str//$'\f'/\\f}"
+	str="${str//$'\0'/\\u0000}"
 	builtin printf -v "$reply_var" '"%s"' "$str"
 }
 

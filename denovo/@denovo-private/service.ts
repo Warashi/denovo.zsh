@@ -1,3 +1,7 @@
+import { join } from "@std/path/join";
+import { exists } from "@std/fs/exists";
+import { ensure } from "@core/unknownutil/ensure";
+import { isString } from "@core/unknownutil/is/string";
 import type { Meta } from "@warashi/denovo-core";
 import { DenovoImpl } from "./denovo.ts";
 import type { Host, Service as HostService } from "./host.ts";
@@ -108,10 +112,31 @@ export class Service implements HostService, AsyncDisposable {
     this.#interruptController = new AbortController();
   }
 
+  async #discover(name: string): Promise<void> {
+    if (!this.#host) {
+      throw new Error("No host is bound to the service");
+    }
+    const paths = ensure(
+      (await this.#host.call("_denovo_path")).output,
+      isString,
+    );
+    for (const p of paths.split("\0").filter((p) => p.length > 0)) {
+      const script = join(p, "denovo", name, "main.ts");
+      if (await exists(script)) {
+        await this.load(name, script);
+        return;
+      }
+    }
+    throw new Error(`Plugin '${name}' is not found`);
+  }
+
   async #dispatch(name: string, fn: string, args: unknown[]): Promise<unknown> {
+    if (!this.#plugins.has(name)) {
+      await this.#discover(name);
+    }
     const plugin = this.#plugins.get(name);
     if (!plugin) {
-      throw new Error(`No plugin '${name}' is loaded`);
+      throw new Error(`Plugin '${name}' is not found`);
     }
     return await plugin.call(fn, ...args);
   }
