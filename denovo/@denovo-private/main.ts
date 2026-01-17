@@ -3,6 +3,7 @@ import { asyncSignal } from "@milly/async-signal";
 import { Zsh } from "./host/zsh.ts";
 import { Service } from "./service.ts";
 import { isMeta } from "./util.ts";
+import { patchConsole } from "./console.ts";
 
 async function main() {
   globalThis.addEventListener("unhandledrejection", (event) => {
@@ -14,6 +15,8 @@ async function main() {
 
   await using host = new Zsh(Deno.stdin.readable, Deno.stdout.writable);
   const meta = ensure((await host.call("_denovo_meta")).output, isMeta);
+
+  patchConsole(host, meta);
 
   await using service = new Service(meta);
 
