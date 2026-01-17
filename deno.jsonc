@@ -1,12 +1,17 @@
 {
   "lock": false,
+  "workspace": [
+    "denovo/@denovo-private"
+  ],
   "tasks": {
-    "upgrade": "deno run --no-lock -A https://deno.land/x/udd/main.ts $(find . -name '*.ts')",
-    "dev": "deno run --unstable --allow-env --allow-read --allow-write --watch denovo/@denovo-private/main.ts",
-    "check": "deno check --unstable $(find . -name '*.ts')",
-    "lint": "deno lint --unstable $(find . -name '*.ts')",
-    "format-zsh": "beautysh -t $(find . -name '*.zsh')",
-    "format-ts": "deno fmt --unstable $(find . -name '*.ts')",
-    "format": "deno task format-zsh; deno task format-ts",
+    "check": "deno check denovo/**/*.ts",
+    "test": "deno task test:shell && deno task test:deno",
+    "test:coverage": "deno task test:shell:coverage && deno task test:deno:coverage",
+    "test:shell": "shellspec --chdir shell",
+    "test:shell:coverage": "deno task test:shell --kcov",
+    "test:deno": "deno test -A --doc --parallel --shuffle denovo/**/*.ts",
+    "test:deno:coverage": "deno task test:deno --coverage=.coverage --coverage-raw-data-only && deno task coverage",
+    "coverage": "deno coverage .coverage --exclude='/tmp/'",
+    "bench": "deno bench -A"
   }
 }

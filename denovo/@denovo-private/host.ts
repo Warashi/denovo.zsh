@@ -1,64 +1,95 @@
-import { Invoker, isInvokerMethod } from "./invoker.ts";
-import { Session } from "./session.ts";
-import { NewError, Response } from "./jsonrpc/mod.ts";
-import { Disposable } from "./deps.ts";
-import { evalZsh } from "./eval.ts";
+import type { CallResult } from "@warashi/denovo-core";
+import type { Predicate } from "@core/unknownutil/type";
+import { ensure } from "@core/unknownutil/ensure";
+import { asOptional } from "@core/unknownutil/as/optional";
+import { isArray } from "@core/unknownutil/is/array";
+import { isParametersOf } from "@core/unknownutil/is/parameters-of";
+import { isString } from "@core/unknownutil/is/string";
+import { isUnknown } from "@core/unknownutil/is/unknown";
 
-export interface Host extends Disposable {
+/**
+ * Host (zsh) which is visible from Service
+ */
+export interface Host extends AsyncDisposable {
   /**
-   * evaluate shell expr and return stdout
+   * Call host function and return result
    */
-  eval(expr: string): Promise<string>;
+  call(fn: string, ...args: unknown[]): Promise<CallResult>;
 
   /**
-   * Register invoker
+   * Batch call host functions and return results and error
    */
-  register(invoker: Invoker): void;
+  batch(
+    ...calls: (readonly [string, ...unknown[]])[]
+  ): Promise<[CallResult[], string]>;
 
   /**
-   * Wait host closed
+   * Call host function and does not check results
+   */
+  notify(fn: string, ...args: unknown[]): Promise<void>;
+
+  /**
+   * Initialize host
+   */
+  init(service: Service): Promise<void>;
+
+  /**
+   * Wait host close
    */
   waitClosed(): Promise<void>;
 }
 
-export class HostImpl implements Host {
-  #session: Session;
-  #connectOptions: Deno.UnixConnectOptions;
+export type HostConstructor = {
+  new (
+    readable: ReadableStream<Uint8Array>,
+    writable: WritableStream<Uint8Array>,
+  ): Host;
+};
 
-  constructor(
-    reader: ReadableStream<Uint8Array>,
-    writer: WritableStream<Uint8Array>,
-    opts: Deno.UnixConnectOptions,
-  ) {
-    this.#session = new Session(reader, writer);
-    this.#connectOptions = opts;
-  }
+// Minimum interface of Service that Host is relies on
+export type Service = {
+  bind(host: Host): void;
+  load(name: string, script: string): Promise<void>;
+  unload(name: string): Promise<void>;
+  reload(name: string): Promise<void>;
+  interrupt(reason?: unknown): void;
+  dispatch(name: string, fn: string, args: unknown[]): Promise<unknown>;
+  close(): Promise<void>;
+};
 
-  eval(expr: string): Promise<string> {
-    return evalZsh(expr, this.#connectOptions);
-  }
+type ServiceForInvoke = Omit<Service, "bind">;
 
-  register(invoker: Invoker): void {
-    this.#session.onMessage = async (message): Promise<Response> => {
-      const { method, params } = message;
-      if (!isInvokerMethod(method)) {
-        return NewError({
-          error: {
-            code: 404,
-            message: `Method '${method}' is not defined in the invoker`,
-          },
-        });
-      }
-      // deno-lint-ignore no-explicit-any
-      return await (invoker[method] as any)(...params);
-    };
-  }
-
-  dispose(): void {
-    // noop
-  }
-
-  waitClosed(): Promise<void> {
-    return this.#session.process();
+export function invoke(
+  service: ServiceForInvoke,
+  name: string,
+  args: unknown[],
+): Promise<unknown> {
+  switch (name) {
+    case "load":
+      return service.load(...ensure(args, serviceMethodArgs.load));
+    case "unload":
+      return service.unload(...ensure(args, serviceMethodArgs.unload));
+    case "reload":
+      return service.reload(...ensure(args, serviceMethodArgs.reload));
+    case "interrupt":
+      service.interrupt(...ensure(args, serviceMethodArgs.interrupt));
+      return Promise.resolve();
+    case "dispatch":
+      return service.dispatch(...ensure(args, serviceMethodArgs.dispatch));
+    case "close":
+      return service.close(...ensure(args, serviceMethodArgs.close));
+    default:
+      throw new Error(`Service does not have a method '${name}'`);
   }
 }
+
+const serviceMethodArgs = {
+  load: isParametersOf([isString, isString] as const),
+  unload: isParametersOf([isString] as const),
+  reload: isParametersOf([isString] as const),
+  interrupt: isParametersOf([asOptional(isUnknown)] as const),
+  dispatch: isParametersOf([isString, isString, isArray] as const),
+  close: isParametersOf([] as const),
+} as const satisfies {
+  [K in keyof ServiceForInvoke]: Predicate<Parameters<ServiceForInvoke[K]>>;
+};
