@@ -43,11 +43,16 @@ function _denovo_dispatch_request() {
 	local method="$1"
 	builtin shift
 
+	local -a arg_items=()
+	local item
+	for item in "$@"; do
+		arg_items+=("-s" "$item")
+	done
 	local args='[]'
-	_denovo_jo -v args -a "$@"
+	_denovo_jo -v args -a "${arg_items[@]}"
 
 	local dispatch_args
-	_denovo_jo -v dispatch_args -a "$plugin" "$method" "$args"
+	_denovo_jo -v dispatch_args -a -s "$plugin" -s "$method" "$args"
 
 	local params
 	_denovo_jo -v params -a "dispatch" "$dispatch_args"

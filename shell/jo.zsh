@@ -84,10 +84,7 @@ function _denovo_jo_value() {
 function _denovo_jo_array() {
 	local reply_var="$1"
 	shift
-	local -a items=()
-	for item in $@; do
-		items+=("$item")
-	done
+	local -a items=("$@")
 	local json='['
 	local value_json
 	for ((i = 1; i <= ${#items}; i++)); do
@@ -113,10 +110,7 @@ function _denovo_jo_array() {
 function _denovo_jo_object() {
 	local reply_var="$1"
 	shift
-	local -a pairs=()
-	for item in $@; do
-		pairs+=("$item")
-	done
+	local -a pairs=("$@")
 	local json='{'
 	local kv_json
 	for ((i = 1; i <= ${#pairs}; i++)); do
