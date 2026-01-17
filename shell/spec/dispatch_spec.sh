@@ -31,6 +31,14 @@ Describe 'denovo-dispatch'
 		When call denovo-dispatch denovo-example echo a b c
 		The output should eq '{"jsonrpc":"2.0","id":1,"method":"invoke","params":["dispatch",["denovo-example","echo",["a","b","c"]]]}'
 	End
+	It 'send dispatch request with empty string argument'
+		When call denovo-dispatch denovo-example echo "" ""
+		The output should eq '{"jsonrpc":"2.0","id":1,"method":"invoke","params":["dispatch",["denovo-example","echo",["",""]]]}'
+	End
+	It 'send dispatch request with empty string argument and non-empty string argument'
+		When call denovo-dispatch denovo-example echo "" "" "c"
+		The output should eq '{"jsonrpc":"2.0","id":1,"method":"invoke","params":["dispatch",["denovo-example","echo",["","","c"]]]}'
+	End
 End
 
 Describe 'denovo-notify'
@@ -45,5 +53,13 @@ Describe 'denovo-notify'
 	It 'send notify request'
 		When call denovo-notify denovo-example echo a b c
 		The output should eq '{"jsonrpc":"2.0","method":"invoke","params":["dispatch",["denovo-example","echo",["a","b","c"]]]}'
+	End
+	It 'send notify request with empty string argument'
+		When call denovo-notify denovo-example echo "" ""
+		The output should eq '{"jsonrpc":"2.0","method":"invoke","params":["dispatch",["denovo-example","echo",["",""]]]}'
+	End
+	It 'send notify request with empty string argument and non-empty string argument'
+		When call denovo-notify denovo-example echo "" "" "c"
+		The output should eq '{"jsonrpc":"2.0","method":"invoke","params":["dispatch",["denovo-example","echo",["","","c"]]]}'
 	End
 End
