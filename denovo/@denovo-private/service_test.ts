@@ -112,7 +112,7 @@ Deno.test("Service: dispatch fails when plugin missing", async () => {
   await assertRejects(
     () => service.dispatch("missing", "fn", []),
     Error,
-    "No plugin 'missing' is loaded",
+    "Plugin 'missing' is not found",
   );
 });
 
@@ -175,7 +175,7 @@ Deno.test("Service: ignores failed plugin load", async () => {
     await assertRejects(
       () => service.dispatch("plugin", "ping", []),
       Error,
-      "No plugin 'plugin' is loaded",
+      "Plugin 'plugin' is not found",
     );
   });
 });
