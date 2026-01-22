@@ -1,5 +1,4 @@
 import type { Meta } from "@warashi/denovo-core";
-import type { Host } from "./host.ts";
 
 const CONSOLE_PATCH_METHODS = [
   "log",
@@ -8,6 +7,14 @@ const CONSOLE_PATCH_METHODS = [
   "warn",
   "error",
 ] as const satisfies (keyof typeof console)[];
+
+const PRIORITIES = {
+  log: "notice",
+  info: "info",
+  debug: "debug",
+  warn: "warning",
+  error: "error",
+} as const satisfies Record<typeof CONSOLE_PATCH_METHODS[number], string>;
 
 function replacer(_key: string, value: unknown): unknown {
   if (typeof value === "bigint") {
@@ -31,18 +38,23 @@ function formatArgs(args: unknown[]): string[] {
   });
 }
 
-export function patchConsole(host: Host, meta: Meta): void {
+export function patchConsole(meta: Meta): void {
   for (const name of CONSOLE_PATCH_METHODS) {
     if (name === "debug" && meta.mode !== "debug") {
       console[name] = () => {};
       continue;
     }
-    const orig = console[name].bind(console);
-    const fn = `_denovo_logger_${name}`;
     console[name] = (...args: unknown[]): void => {
-      host
-        .notify(fn, ...formatArgs(args))
-        .catch(() => orig(...args));
+      const message = formatArgs(args).join(" ");
+      new Deno.Command("logger", {
+        args: [
+          "-t",
+          "denovo",
+          "-p",
+          `user.${PRIORITIES[name]}`,
+          message,
+        ],
+      }).outputSync();
     };
   }
 }
